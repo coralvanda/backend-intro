@@ -17,6 +17,7 @@
 import os
 import webapp2
 import jinja2
+import codecs
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -47,7 +48,21 @@ class FizzBuzzHandler(Handler):
 		n = n and int(n)
 		self.render('fizzbuzz.html', n=n)
 
+
+class Rot13Handler(Handler):
+	def get(self):
+		text = self.request.get("text")
+		self.render('rot13.html', text=text)
+
+	def post(self):
+		text = self.request.get("text")
+		encoder = codecs.getencoder("rot-13")
+		encoded_text = encoder(text)[0]
+		self.render('rot13.html', text=encoded_text)
+
+
 app = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/fizzbuzz', FizzBuzzHandler)
+    ('/fizzbuzz', FizzBuzzHandler),
+    ('/rot13', Rot13Handler)
     ], debug=True)

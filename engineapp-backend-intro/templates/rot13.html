@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form id="rot13">	
+	<h2>Enter text to perform a rot13 encryption</h2>
+	<textarea name="text" rows="5" cols="50"  form="rot13">{{ text }}</textarea>
+	<br>
+	<button type="submit" formmethod="post">Encrypt/decrypt</button>
+</form>
+
+{% endblock %}
