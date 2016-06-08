@@ -18,6 +18,7 @@ import os
 import webapp2
 import jinja2
 import codecs
+import re
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -61,8 +62,39 @@ class Rot13Handler(Handler):
 		self.render('rot13.html', text=encoded_text)
 
 
+def valid_username(username):
+	user_re = re.compile(r'^[a-zA-Z0-9_-]{3,20}$')
+	return user_re.match(username)
+
+
+class SignupHandler(Handler):
+	def get(self):
+		self.render('signup.html')
+
+	def post(self):
+		user_name = self.request.get('username')
+		good_name = False
+		if user_name and valid_username(user_name):
+			good_name = True
+
+		#TODO Finish implementing checks for user inputs
+		# and rendering the welcome page correctly
+		if True:
+			self.render('welcome.html', username=user_name)
+		else:
+			WelcomeHandler.get()
+
+
+class WelcomeHandler(Handler):
+	def get(self):
+		user_name = self.request.get('username')
+		self.render('welcome.html', username=user_name)
+
+
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/fizzbuzz', FizzBuzzHandler),
-    ('/rot13', Rot13Handler)
+    ('/rot13', Rot13Handler),
+    ('/signup', SignupHandler),
+    ('/welcome', WelcomeHandler)
     ], debug=True)
