@@ -66,23 +66,56 @@ def valid_username(username):
 	user_re = re.compile(r'^[a-zA-Z0-9_-]{3,20}$')
 	return user_re.match(username)
 
+def valid_password(password):
+	pw_re = re.compile(r"^.{3,20}$")
+	return pw_re.match(password)
+
+def valid_email(email):
+	email_re = re.compile(r'^[\S]+@[\S]+.[\S]+$')
+	return email_re.match(email)
+
 
 class SignupHandler(Handler):
 	def get(self):
 		self.render('signup.html')
 
 	def post(self):
-		user_name = self.request.get('username')
-		good_name = False
-		if user_name and valid_username(user_name):
-			good_name = True
+		user_name	= self.request.get('username')
+		password 	= self.request.get('password')
+		verify 		= self.request.get('verify')
+		email 		= self.request.get('email')
 
-		#TODO Finish implementing checks for user inputs
+		username_error 	= ''
+		password_error 	= ''
+		verify_error	= ''
+		email_error		= ''
+		valid_form = True
+
+		if not valid_username(user_name):
+			username_error = "Please enter a valid user name"
+			valid_form = False
+		if not valid_password(password):
+			password_error = "Please enter a valid password"
+			valid_form = False
+		if not password == verify:
+			verify_error = "Password does not match"
+			valid_form = False
+		if email and not valid_email(email):
+			email_error = "Please enter a valid email"
+			valid_form = False
+
+		#TODO Fix coloring for errors on signup.html
 		# and rendering the welcome page correctly
-		if True:
-			self.render('welcome.html', username=user_name)
+		if valid_form:
+			self.redirect('/welcome?username=%s' % user_name)
 		else:
-			WelcomeHandler.get()
+			self.render('signup.html',
+				username=user_name,
+				email=email, 
+				username_error=username_error,
+				password_error=password_error,
+				verify_error=verify_error,
+				email_error=email_error)
 
 
 class WelcomeHandler(Handler):

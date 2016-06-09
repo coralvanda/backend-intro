@@ -8,22 +8,30 @@
 		<tbody>
 			<tr>
 				<td>User name:</td>
-				<td><input type="text" name="username" value=""></input></td>
+				<td><input type="text" name="username" 
+					value="{{username}}"></input></td>
+				<td style="color:FF0000;">{{username_error}}</td>
 			</tr>
 
 			<tr>
 				<td>Password:</td>
-				<td><input type="text" name="password" value=""></input></td>
+				<td><input type="password" name="password" 
+					value=""></input></td>
+				<td style="color:FF0000;">{{password_error}}</td>
 			</tr>
 
 			<tr>
 				<td>Verify password:</td>
-				<td><input type="text" name="verify" value=""></input></td>
+				<td><input type="password" name="verify" 
+					value=""></input></td>
+				<td style="color:FF0000;">{{verify_error}}</td>
 			</tr>
 
 			<tr>
 				<td>Email (optional):</td>
-				<td><input type="text" name="email" value=""></input></td>
+				<td><input type="text" name="email" 
+					value="{{email}}"></input></td>
+				<td style="color:FF0000;">{{email_error}}</td>
 			</tr>
 		</tbody>
 	</table>
