@@ -37,7 +37,7 @@ class Handler(webapp2.RequestHandler):
 		self.write(self.render_str(template, **kw))
 
 
-class MainPage(Handler):
+class FoodHandler(Handler):
     def get(self):
     	items = self.request.get_all("food")
     	self.render("shopping_list.html", items = items)
@@ -104,8 +104,6 @@ class SignupHandler(Handler):
 			email_error = "Please enter a valid email"
 			valid_form = False
 
-		#TODO Fix coloring for errors on signup.html
-		# and rendering the welcome page correctly
 		if valid_form:
 			self.redirect('/welcome?username=%s' % user_name)
 		else:
@@ -121,11 +119,19 @@ class SignupHandler(Handler):
 class WelcomeHandler(Handler):
 	def get(self):
 		user_name = self.request.get('username')
+		if not valid_username(user_name):
+			self.redirect('signup')
 		self.render('welcome.html', username=user_name)
+
+
+class MainPage(Handler):
+    def get(self):
+    	self.render("front.html")
 
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
+    ('/food', FoodHandler),
     ('/fizzbuzz', FizzBuzzHandler),
     ('/rot13', Rot13Handler),
     ('/signup', SignupHandler),
