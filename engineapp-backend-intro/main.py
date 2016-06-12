@@ -20,6 +20,8 @@ import jinja2
 import codecs
 import re
 
+from google.appengine.ext import db
+
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
 	autoescape = True)
@@ -124,13 +126,86 @@ class WelcomeHandler(Handler):
 		self.render('welcome.html', username=user_name)
 
 
+class Art(db.Model):
+	title 	= db.StringProperty(required=True)
+	art 	= db.TextProperty(required=True)
+	created = db.DateTimeProperty(auto_now_add=True)
+
+
 class MainPage(Handler):
+    def render_front(self, title="", art="", error=""):
+    	arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC")
+        self.render("front.html", 
+        	title=title, 
+        	art=art, 
+        	error=error,
+        	arts=arts)
+
     def get(self):
-    	self.render("front.html")
+    	self.render_front()
+
+    def post(self):
+    	title = self.request.get('title')
+    	art = self.request.get('art')
+
+    	if title and art:
+    		a = Art(title=title, art=art)
+    		a.put()
+    		self.redirect("/")
+    	else:
+    		error = "we need both a title and some artwork!"
+    		self.render_front(title, art, error)
+
+
+class BlogEntry(db.Model):
+	"""Creates an entity for blog entries"""
+	title 	= db.StringProperty(required=True)
+	content = db.TextProperty(required=True)
+	created = db.DateTimeProperty(auto_now_add=True)
+
+
+class Blog(Handler):
+	"""Serves the front page of the blog, 
+	displaying most recent entries first"""
+	def get(self):
+		posts = db.GqlQuery("SELECT * FROM BlogEntry ORDER BY created DESC limit 10")
+		self.render('blog.html', posts=posts)
+
+
+class SinglePost(Handler):
+	"""Displays an individual blog post as identified in the URL"""
+	def get(self, post_id):
+		post = BlogEntry.get_by_id(int(post_id))
+		if post:
+			self.render("permalink.html", post=post)
+		else:
+			self.error(404)
+			return
+
+
+class NewBlogPost(Handler):
+	"""Accepts and stores new blog posts"""
+	def get(self):
+		self.render("newpost.html")
+
+	def post(self):
+		title = self.request.get("subject")
+		content = self.request.get("content")
+		if title and content:
+			post = BlogEntry(title=title, content=content)
+			post.put()
+			post_id = post.key().id()
+			self.redirect('/blog/%s' % post_id)
+		else:
+			error = "You must include both a title and content"
+			self.render("/newpost", title=title, content=content, error=error)
 
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
+    ('/blog', Blog),
+    ('/blog/newpost', NewBlogPost),
+    ('/blog/(\w+)', SinglePost),
     ('/food', FoodHandler),
     ('/fizzbuzz', FizzBuzzHandler),
     ('/rot13', Rot13Handler),

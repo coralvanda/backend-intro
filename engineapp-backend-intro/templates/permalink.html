@@ -1,0 +1,12 @@
+{% extends 'blogbase.html' %}
+
+{% block content %}
+
+	<div class="title">{{post.title}}</div>
+	<div class="date">{{post.created}}</div>
+	<hr class="content">
+	<div class="content">{{post.content}}</div>
+	<br>
+	<br>
+
+{% endblock %}

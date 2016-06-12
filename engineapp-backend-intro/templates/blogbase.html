@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>HW 2 - Blog main page</title>
+</head>
+
+<style type="text/css">
+	body {
+		font-family: sans-serif;
+		width: 800px;
+		margin: 0 auto;
+		padding: 10px;
+	}
+
+	.error{
+		color: red;
+	}
+
+	.title{
+		font-weight: bold;
+		float: left;
+	}
+
+	.date{
+		font-style: italic;
+		float: right;
+	}
+
+	.content{
+		clear: both;
+	}
+
+	label {
+		display: block;
+		font-size: 20px;
+	}
+
+	input[type=text] {
+		width: 400px;
+		font-size: 20px;
+		padding: 2px;
+	}
+
+	textarea {
+		width: 400px;
+		height: 200px;
+		font-size: 17px;
+		font-family: monospace;
+	}
+
+	input[type=submit] {
+		font-size: 24px;
+	}
+
+	hr {
+		margin: 20px auto;
+	}
+</style>
+
+<body style="margin: 0">
+	<h1 style="background-color: #ddd; color:#888; margin: 0 height: 50px">
+		Blog entries
+	</h1>
+	{% block content %}
+	{% endblock %}
+</body>
+</html>
