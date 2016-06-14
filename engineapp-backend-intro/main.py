@@ -19,8 +19,12 @@ import webapp2
 import jinja2
 import codecs
 import re
+import hmac
+import Cookie
 
 from google.appengine.ext import db
+
+SECRET = 'secret_cookie_string'
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -76,6 +80,17 @@ def valid_email(email):
 	email_re = re.compile(r'^[\S]+@[\S]+.[\S]+$')
 	return email_re.match(email)
 
+def hash_str(s):
+	return hmac.new(SECRET, s).hexdigest()
+
+def make_secure_val(s):
+	return "%s|%s" % (s, hash_str(s))
+
+def check_secure_val(h):
+	val = h.split("|")[0]
+	if h == make_secure_val(val):
+		return val
+
 
 class SignupHandler(Handler):
 	def get(self):
@@ -107,7 +122,12 @@ class SignupHandler(Handler):
 			valid_form = False
 
 		if valid_form:
-			self.redirect('/welcome?username=%s' % user_name)
+			# TODO:
+			# fix issue with setting cookie header
+			cookie_val = make_secure_val(user_name)
+			self.response.headers['Content-Type'] = 'text/plain'
+			self.response.headers.add_header('Set-Cookie', 'name=' + str(user_name))
+			self.redirect('/welcome')
 		else:
 			self.render('signup.html',
 				username=user_name,
@@ -120,10 +140,12 @@ class SignupHandler(Handler):
 
 class WelcomeHandler(Handler):
 	def get(self):
-		user_name = self.request.get('username')
-		if not valid_username(user_name):
-			self.redirect('signup')
-		self.render('welcome.html', username=user_name)
+		user_name = self.request.cookies.get('name')
+		if user_name:
+			if check_secure_val(user_name):
+				self.render('welcome.html', username=user_name)
+		self.redirect('signup')
+		
 
 
 class Art(db.Model):
