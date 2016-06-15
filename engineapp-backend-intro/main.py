@@ -97,6 +97,7 @@ class SignupHandler(Handler):
 		self.render('signup.html')
 
 	def post(self):
+		#self.response.headers['Content-Type'] = 'text/plain'
 		user_name	= self.request.get('username')
 		password 	= self.request.get('password')
 		verify 		= self.request.get('verify')
@@ -122,11 +123,8 @@ class SignupHandler(Handler):
 			valid_form = False
 
 		if valid_form:
-			# TODO:
-			# fix issue with setting cookie header
 			cookie_val = make_secure_val(user_name)
-			self.response.headers['Content-Type'] = 'text/plain'
-			self.response.headers.add_header('Set-Cookie', 'name=' + str(user_name))
+			self.response.set_cookie('name', cookie_val)
 			self.redirect('/welcome')
 		else:
 			self.render('signup.html',
@@ -140,11 +138,16 @@ class SignupHandler(Handler):
 
 class WelcomeHandler(Handler):
 	def get(self):
-		user_name = self.request.cookies.get('name')
-		if user_name:
-			if check_secure_val(user_name):
+		user_name_cookie = self.request.cookies.get('name')
+		if user_name_cookie:
+			user_name = check_secure_val(user_name_cookie)
+			if user_name:
 				self.render('welcome.html', username=user_name)
-		self.redirect('signup')
+			else:
+				self.redirect('/signup')
+		else:
+			self.redirect("/signup")
+
 		
 
 
