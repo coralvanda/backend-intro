@@ -19,10 +19,12 @@ import webapp2
 import jinja2
 import codecs
 import re
+import hashlib
 import hmac
 import Cookie
 import datetime
 import random
+import string
 
 from google.appengine.ext import db
 
@@ -102,7 +104,7 @@ def check_secure_val(h):
 
 def make_salt(length=5):
 	#TODO: fix the random choice of letters
-	return "".join(random.choice(letters) for x in range(length))
+	return "".join(random.choice(string.letters) for x in range(length))
 
 def make_pw_hash(name, pw, salt=None):
 	if not salt:
@@ -142,7 +144,7 @@ class User(db.Model):
 
 	@classmethod
 	def login(cls, name, pw):
-		u = self.by_name(name)
+		u = cls.by_name(name)
 		if u and valid_pw(name, pw, u.pw_hash):
 			return u
 
@@ -212,6 +214,10 @@ class LoginHandler(Handler):
 		password_error 	= ''
 		valid_form = True
 
+		u = User.login(user_name, password)
+		if not u:
+			username_error = "Invalid login"
+			valid_form = False
 		if not valid_username(user_name):
 			username_error = "Please enter a valid user name"
 			valid_form = False
@@ -266,28 +272,28 @@ class Art(db.Model):
 class MainPage(Handler):
 	"""Allows a person to submit new ascii art, and displays up to 10
 	of the most recently submitted ascii art pieces"""
-    def render_front(self, title="", art="", error=""):
-    	arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC")
-        self.render("front.html", 
+	def render_front(self, title="", art="", error=""):
+		arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC")
+		self.render("front.html", 
         	title=title, 
         	art=art, 
         	error=error,
         	arts=arts)
 
-    def get(self):
-    	self.render_front()
+	def get(self):
+		self.render_front()
 
-    def post(self):
-    	title = self.request.get('title')
-    	art = self.request.get('art')
+	def post(self):
+		title = self.request.get('title')
+		art = self.request.get('art')
 
-    	if title and art:
-    		a = Art(title=title, art=art)
-    		a.put()
-    		self.redirect("/")
-    	else:
-    		error = "we need both a title and some artwork!"
-    		self.render_front(title, art, error)
+		if title and art:
+			a = Art(title=title, art=art)
+			a.put()
+			self.redirect("/")
+		else:
+			error = "we need both a title and some artwork!"
+			self.render_front(title, art, error)
 
 
 class BlogEntry(db.Model):
