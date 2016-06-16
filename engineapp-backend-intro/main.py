@@ -21,6 +21,7 @@ import codecs
 import re
 import hmac
 import Cookie
+import datetime
 
 from google.appengine.ext import db
 
@@ -32,6 +33,7 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
 
 
 class Handler(webapp2.RequestHandler):
+	"""Allows for easier writing and rendering of pages"""
 	def write(self, *a, **kw):
 		self.response.out.write(*a, **kw)
 
@@ -69,30 +71,39 @@ class Rot13Handler(Handler):
 
 
 def valid_username(username):
+	"""Confirms that a given username conforms to my requirements"""
 	user_re = re.compile(r'^[a-zA-Z0-9_-]{3,20}$')
 	return user_re.match(username)
 
 def valid_password(password):
+	"""Confirms that a given password conforms to my requirements"""
 	pw_re = re.compile(r"^.{3,20}$")
 	return pw_re.match(password)
 
 def valid_email(email):
+	"""Confirms that a given email is probably valid"""
 	email_re = re.compile(r'^[\S]+@[\S]+.[\S]+$')
 	return email_re.match(email)
 
 def hash_str(s):
+	"""Returns an hmac-hashed version of the input string"""
 	return hmac.new(SECRET, s).hexdigest()
 
 def make_secure_val(s):
+	"""Returns the given string and its hashed version as a single string"""
 	return "%s|%s" % (s, hash_str(s))
 
 def check_secure_val(h):
+	"""Confirms that a given string/hash pair is valid"""
 	val = h.split("|")[0]
 	if h == make_secure_val(val):
 		return val
 
 
 class SignupHandler(Handler):
+	"""Allows a user to signup, enforcing rules for username, password
+	and allowing an optional email input (also checked for validity).
+	Then sets a cookie and sends the user to the welcome page"""
 	def get(self):
 		self.render('signup.html')
 
@@ -136,6 +147,8 @@ class SignupHandler(Handler):
 
 
 class LoginHandler(Handler):
+	"""Allows users to log in, enforcing rules for username and password.
+	If valid, sets a cookie and redirects to the welcome page."""
 	def get(self):
 		self.render('login.html')
 
@@ -164,7 +177,20 @@ class LoginHandler(Handler):
 				password_error=password_error)
 
 
+class LogoutHandler(Handler):
+	"""Clears the cookie set by either the login or signup page, then
+	redirects back to the signup page."""
+	def get(self):
+		user_name_cookie = self.request.cookies.get('name')
+		if user_name_cookie:
+			self.response.set_cookie('name', '', expires=datetime.datetime.min)
+		self.redirect('/signup')
+
+
 class WelcomeHandler(Handler):
+	"""Greets a user who has signed up or logged in, using the set cookie
+	to display their username.  If the cookie is invalid, redirects
+	to the signup page"""
 	def get(self):
 		user_name_cookie = self.request.cookies.get('name')
 		if user_name_cookie:
@@ -178,12 +204,15 @@ class WelcomeHandler(Handler):
 
 
 class Art(db.Model):
+	"""NDB kind for holding pieces of submitted ascii art"""
 	title 	= db.StringProperty(required=True)
 	art 	= db.TextProperty(required=True)
 	created = db.DateTimeProperty(auto_now_add=True)
 
 
 class MainPage(Handler):
+	"""Allows a person to submit new ascii art, and displays up to 10
+	of the most recently submitted ascii art pieces"""
     def render_front(self, title="", art="", error=""):
     	arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC")
         self.render("front.html", 
@@ -262,5 +291,6 @@ app = webapp2.WSGIApplication([
     ('/rot13', Rot13Handler),
     ('/signup', SignupHandler),
     ('/login', LoginHandler),
+    ('/logout', LogoutHandler),
     ('/welcome', WelcomeHandler)
     ], debug=True)
