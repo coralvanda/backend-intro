@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<form>
+	<h1>Login</h1>
+	<table>
+		<tbody>
+			<tr>
+				<td>User name:</td>
+				<td><input type="text" name="username" 
+					value="{{username}}"></td>
+				<td style="color:#FF0000;">{{username_error}}</td>
+			</tr>
+
+			<tr>
+				<td>Password:</td>
+				<td><input type="password" name="password" 
+					value=""></td>
+				<td style="color:#FF0000;">{{password_error}}</td>
+			</tr>
+		</tbody>
+	</table>
+	<button type='submit' formmethod="post">Submit</button>
+</form>
+
+{% endblock %}

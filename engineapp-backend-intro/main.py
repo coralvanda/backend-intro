@@ -97,7 +97,6 @@ class SignupHandler(Handler):
 		self.render('signup.html')
 
 	def post(self):
-		#self.response.headers['Content-Type'] = 'text/plain'
 		user_name	= self.request.get('username')
 		password 	= self.request.get('password')
 		verify 		= self.request.get('verify')
@@ -136,6 +135,35 @@ class SignupHandler(Handler):
 				email_error=email_error)
 
 
+class LoginHandler(Handler):
+	def get(self):
+		self.render('login.html')
+
+	def post(self):
+		user_name	= self.request.get('username')
+		password 	= self.request.get('password')
+		username_error 	= ''
+		password_error 	= ''
+		valid_form = True
+
+		if not valid_username(user_name):
+			username_error = "Please enter a valid user name"
+			valid_form = False
+		if not valid_password(password):
+			password_error = "Please enter a valid password"
+			valid_form = False
+
+		if valid_form:
+			cookie_val = make_secure_val(user_name)
+			self.response.set_cookie('name', cookie_val)
+			self.redirect('/welcome')
+		else:
+			self.render('login.html',
+				username=user_name,
+				username_error=username_error,
+				password_error=password_error)
+
+
 class WelcomeHandler(Handler):
 	def get(self):
 		user_name_cookie = self.request.cookies.get('name')
@@ -147,8 +175,6 @@ class WelcomeHandler(Handler):
 				self.redirect('/signup')
 		else:
 			self.redirect("/signup")
-
-		
 
 
 class Art(db.Model):
@@ -235,5 +261,6 @@ app = webapp2.WSGIApplication([
     ('/fizzbuzz', FizzBuzzHandler),
     ('/rot13', Rot13Handler),
     ('/signup', SignupHandler),
+    ('/login', LoginHandler),
     ('/welcome', WelcomeHandler)
     ], debug=True)
