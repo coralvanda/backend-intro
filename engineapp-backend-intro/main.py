@@ -78,6 +78,40 @@ class Rot13Handler(Handler):
 		self.render('rot13.html', text=encoded_text)
 
 
+class Art(db.Model):
+	"""Creates an entity for holding pieces of submitted ascii art"""
+	title 	= db.StringProperty(required=True)
+	art 	= db.TextProperty(required=True)
+	created = db.DateTimeProperty(auto_now_add=True)
+
+
+class Ascii(Handler):
+	"""Allows a person to submit new ascii art, and displays up to 10
+	of the most recently submitted ascii art pieces"""
+	def render_ascii(self, title="", art="", error=""):
+		arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC")
+		self.render("ascii.html", 
+        	title=title, 
+        	art=art, 
+        	error=error,
+        	arts=arts)
+
+	def get(self):
+		self.render_ascii()
+
+	def post(self):
+		title = self.request.get('title')
+		art = self.request.get('art')
+
+		if title and art:
+			a = Art(title=title, art=art)
+			a.put()
+			self.redirect("/ascii")
+		else:
+			error = "we need both a title and some artwork!"
+			self.render_ascii(title, art, error)
+
+
 def valid_username(username):
 	# Confirms that a given username conforms to my requirements
 	user_re = re.compile(r'^[a-zA-Z0-9_-]{3,20}$')
@@ -272,40 +306,6 @@ class WelcomeHandler(Handler):
 			self.redirect("/signup")
 
 
-class Art(db.Model):
-	"""Creates an entity for holding pieces of submitted ascii art"""
-	title 	= db.StringProperty(required=True)
-	art 	= db.TextProperty(required=True)
-	created = db.DateTimeProperty(auto_now_add=True)
-
-
-class MainPage(Handler):
-	"""Allows a person to submit new ascii art, and displays up to 10
-	of the most recently submitted ascii art pieces"""
-	def render_front(self, title="", art="", error=""):
-		arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC")
-		self.render("front.html", 
-        	title=title, 
-        	art=art, 
-        	error=error,
-        	arts=arts)
-
-	def get(self):
-		self.render_front()
-
-	def post(self):
-		title = self.request.get('title')
-		art = self.request.get('art')
-
-		if title and art:
-			a = Art(title=title, art=art)
-			a.put()
-			self.redirect("/")
-		else:
-			error = "we need both a title and some artwork!"
-			self.render_front(title, art, error)
-
-
 class BlogEntry(db.Model):
 	"""Creates an entity for storing blog entries"""
 	title 	= db.StringProperty(required=True)
@@ -351,7 +351,8 @@ class NewBlogPost(Handler):
 
 
 app = webapp2.WSGIApplication([
-    ('/', MainPage),
+	('/', Blog),
+    ('/ascii', Ascii),
     ('/blog', Blog),
     ('/blog/newpost', NewBlogPost),
     ('/blog/(\w+)', SinglePost),
