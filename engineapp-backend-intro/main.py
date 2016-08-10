@@ -49,12 +49,15 @@ class Handler(webapp2.RequestHandler):
 
 
 class FoodHandler(Handler):
-    def get(self):
-    	items = self.request.get_all("food")
-    	self.render("shopping_list.html", items = items)
+	"""Accepts items to add to a shopping list, and displays it"""
+	def get(self):
+		items = self.request.get_all("food")
+		self.render("shopping_list.html", items = items)
 
 
 class FizzBuzzHandler(Handler):
+	"""Takes a number from the URL to perform fizzbuzz up to 
+	that number and display the result"""
 	def get(self):
 		n = self.request.get('n', 0)
 		n = n and int(n)
@@ -62,6 +65,8 @@ class FizzBuzzHandler(Handler):
 
 
 class Rot13Handler(Handler):
+	"""Accepts text to perform a rot13 encoding/decoding on
+	it, and then displays the result"""
 	def get(self):
 		text = self.request.get("text")
 		self.render('rot13.html', text=text)
@@ -74,53 +79,58 @@ class Rot13Handler(Handler):
 
 
 def valid_username(username):
-	"""Confirms that a given username conforms to my requirements"""
+	# Confirms that a given username conforms to my requirements
 	user_re = re.compile(r'^[a-zA-Z0-9_-]{3,20}$')
 	return user_re.match(username)
 
 def valid_password(password):
-	"""Confirms that a given password conforms to my requirements"""
+	# Confirms that a given password conforms to my requirements
 	pw_re = re.compile(r"^.{3,20}$")
 	return pw_re.match(password)
 
 def valid_email(email):
-	"""Confirms that a given email is probably valid"""
+	# Confirms that a given email is probably valid
 	email_re = re.compile(r'^[\S]+@[\S]+.[\S]+$')
 	return email_re.match(email)
 
 def hash_str(s):
-	"""Returns an hmac-hashed version of the input string"""
+	# Returns an hmac-hashed version of the input string
 	return hmac.new(SECRET, s).hexdigest()
 
 def make_secure_val(s):
-	"""Returns the given string and its hashed version as a single string"""
+	# Returns the given string and its hashed version as a single string
 	return "%s|%s" % (s, hash_str(s))
 
 def check_secure_val(h):
-	"""Confirms that a given string/hash pair is valid"""
+	# Confirms that a given string/hash pair is valid
 	val = h.split("|")[0]
 	if h == make_secure_val(val):
 		return val
 
 def make_salt(length=5):
-	#TODO: fix the random choice of letters
+	# Creates/returns a string of random letters, 5 by default
 	return "".join(random.choice(string.letters) for x in range(length))
 
 def make_pw_hash(name, pw, salt=None):
+	# Uses salt to make a more secure password hash
 	if not salt:
 		salt = make_salt()
 	h = hashlib.sha256(name + pw + salt).hexdigest()
 	return '%s,%s' % (salt, h)
 
 def valid_pw(name, password, h):
+	# Verifies that a password is valid using the hash
 	salt = h.split(',')[0]
 	return h == make_pw_hash(name, password, salt)
 
 def users_key(group = 'default'):
+	# Returns the user's database key
 	return db.Key.from_path('users', group)
 
 
 class User(db.Model):
+	"""Creates an entity for storing users and provides
+	functionality for finding and handling users"""
 	name = db.StringProperty(required=True)
 	pw_hash = db.StringProperty(required=True)
 	email = db.StringProperty()
@@ -263,7 +273,7 @@ class WelcomeHandler(Handler):
 
 
 class Art(db.Model):
-	"""NDB kind for holding pieces of submitted ascii art"""
+	"""Creates an entity for holding pieces of submitted ascii art"""
 	title 	= db.StringProperty(required=True)
 	art 	= db.TextProperty(required=True)
 	created = db.DateTimeProperty(auto_now_add=True)
@@ -297,7 +307,7 @@ class MainPage(Handler):
 
 
 class BlogEntry(db.Model):
-	"""Creates an entity for blog entries"""
+	"""Creates an entity for storing blog entries"""
 	title 	= db.StringProperty(required=True)
 	content = db.TextProperty(required=True)
 	created = db.DateTimeProperty(auto_now_add=True)
