@@ -2,6 +2,17 @@
 
 {% block content %}
 
+{% if user %}
+    {% include 'logout-header.html' %}
+{% else %}
+    {% include 'login-header.html' %}
+{% endif %}
+
+<body style="margin: 0">
+	<h1 style="background-color: #ddd; color:#888; margin: 0 height: 50px">
+		Blog entries
+	</h1>
+
 	{% for post in posts %}
 		<div class="title">{{post.title}}</div>
 		<div class="date">{{post.created.strftime("%b %d, %Y")}}</div>
@@ -10,5 +21,5 @@
 		<br>
 		<br>
 	{% endfor %}
-
+</body>
 {% endblock %}

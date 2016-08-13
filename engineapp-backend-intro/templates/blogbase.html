@@ -2,6 +2,7 @@
 <html>
 <head>
 	<title>HW 2 - Blog main page</title>
+	<!-- I wanted to put a CSS file here, but it seems that is problematic with template inheritance in jinja2 -->
 </head>
 
 <style type="text/css">
@@ -55,13 +56,26 @@
 	hr {
 		margin: 20px auto;
 	}
+
+	.container {
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	.button {
+		background: gray;
+		padding: 2px;
+		margin: 0 2px 0 2px;
+		border: 1px solid black;
+	}
+
+	.button:hover {
+		background: white;
+	}
+	
 </style>
 
-<body style="margin: 0">
-	<h1 style="background-color: #ddd; color:#888; margin: 0 height: 50px">
-		Blog entries
-	</h1>
 	{% block content %}
 	{% endblock %}
-</body>
+	
 </html>

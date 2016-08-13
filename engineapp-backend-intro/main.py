@@ -25,6 +25,7 @@ import Cookie
 import datetime
 import random
 import string
+from flask import url_for
 
 from google.appengine.ext import db
 
@@ -161,6 +162,12 @@ def users_key(group = 'default'):
 	# Returns the user's database key
 	return db.Key.from_path('users', group)
 
+def check_login(cookie):
+	if not cookie:
+		return False
+	else:
+		return check_secure_val(cookie)
+
 
 class User(db.Model):
 	"""Creates an entity for storing users and provides
@@ -296,6 +303,13 @@ class WelcomeHandler(Handler):
 	to the signup page"""
 	def get(self):
 		user_name_cookie = self.request.cookies.get('name')
+		if check_login(user_name_cookie):
+			self.render('welcome.html', username=user_name)
+		else:
+			self.redirect('/signup')
+
+
+		'''  Above is my new way to try this out
 		if user_name_cookie:
 			user_name = check_secure_val(user_name_cookie)
 			if user_name:
@@ -304,6 +318,7 @@ class WelcomeHandler(Handler):
 				self.redirect('/signup')
 		else:
 			self.redirect("/signup")
+		'''
 
 
 class BlogEntry(db.Model):
@@ -318,7 +333,9 @@ class Blog(Handler):
 	displaying most recent entries first"""
 	def get(self):
 		posts = db.GqlQuery("SELECT * FROM BlogEntry ORDER BY created DESC limit 10")
-		self.render('blog.html', posts=posts)
+		cookie = self.request.cookies.get('name')
+		user = check_login(cookie)
+		self.render('blog.html', user=user, posts=posts)
 
 
 class SinglePost(Handler):
@@ -364,3 +381,17 @@ app = webapp2.WSGIApplication([
     ('/logout', LogoutHandler),
     ('/welcome', WelcomeHandler)
     ], debug=True)
+
+
+'''
+TODO:
+	- add login button to all necessary pages
+	- add logout button to all necessary pages
+	- add signin button to all necessary pages
+	- if needed, restructure templates to allow for these buttons
+	- add redirect links to all pages for easier navigation
+	- ? add edit button to each blog post ?
+	- restructure templates to separate concerns
+
+	- Fix issue with url_for() in templates
+'''
