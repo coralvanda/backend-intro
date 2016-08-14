@@ -2,12 +2,19 @@
 
 {% block content %}
 
+{% if user %}
+    {% include 'logout-header.html' %}
+{% else %}
+    {% include 'login-header.html' %}
+{% endif %}
+
+<body>
 	<h2>Enter a new blog post</h2>
 	<div>{{error}}</div>
 	<form method="post">
 		<label>
 			<div>Title</div>
-			<input type='text' name='subject' value="{{title}}">
+			<input class="large-text" type='text' name='subject' value="{{title}}">
 		</label>
 
 		<label>
@@ -16,5 +23,6 @@
 		</label>
 		<input type="submit">
 	</form>
+</body>
 
 {% endblock %}

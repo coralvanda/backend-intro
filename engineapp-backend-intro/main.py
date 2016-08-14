@@ -303,22 +303,11 @@ class WelcomeHandler(Handler):
 	to the signup page"""
 	def get(self):
 		user_name_cookie = self.request.cookies.get('name')
-		if check_login(user_name_cookie):
-			self.render('welcome.html', username=user_name)
+		user = check_login(user_name_cookie)
+		if user:
+			self.render('welcome.html', user=user)
 		else:
 			self.redirect('/signup')
-
-
-		'''  Above is my new way to try this out
-		if user_name_cookie:
-			user_name = check_secure_val(user_name_cookie)
-			if user_name:
-				self.render('welcome.html', username=user_name)
-			else:
-				self.redirect('/signup')
-		else:
-			self.redirect("/signup")
-		'''
 
 
 class BlogEntry(db.Model):
@@ -352,11 +341,18 @@ class SinglePost(Handler):
 class NewBlogPost(Handler):
 	"""Accepts and stores new blog posts"""
 	def get(self):
-		self.render("newpost.html")
+		cookie = self.request.cookies.get('name')
+		user = check_login(cookie)
+		if user:
+			self.render("newpost.html", user=user)
+		else:
+			self.redirect("/signup")
 
 	def post(self):
 		title = self.request.get("subject")
 		content = self.request.get("content")
+		cookie = self.request.cookies.get('name')
+		user = check_login(cookie)
 		if title and content:
 			post = BlogEntry(title=title, content=content)
 			post.put()
@@ -364,7 +360,9 @@ class NewBlogPost(Handler):
 			self.redirect('/blog/%s' % post_id)
 		else:
 			error = "You must include both a title and content"
-			self.render("/newpost", title=title, content=content, error=error)
+			self.render("/newpost", 
+				title=title, content=content, 
+				error=error, user=user)
 
 
 app = webapp2.WSGIApplication([

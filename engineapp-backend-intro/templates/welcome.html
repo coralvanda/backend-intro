@@ -1,9 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'blogbase.html' %}
 
 {% block content %}
 
+{% if user %}
+    {% include 'logout-header.html' %}
+{% else %}
+    {% include 'login-header.html' %}
+{% endif %}
 
-<h1>Welcome, {{username}}</h1>
-
+<body>
+	<h1>Welcome, {{ user }}</h1>
+</body>
 
 {% endblock %}
