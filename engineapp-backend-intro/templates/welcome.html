@@ -2,11 +2,7 @@
 
 {% block content %}
 
-{% if user %}
-    {% include 'logout-header.html' %}
-{% else %}
-    {% include 'login-header.html' %}
-{% endif %}
+{% include 'logout-header.html' %}
 
 <body>
 	<h1>Welcome, {{ user }}</h1>

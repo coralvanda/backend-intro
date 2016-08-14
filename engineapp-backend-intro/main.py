@@ -25,7 +25,6 @@ import Cookie
 import datetime
 import random
 import string
-from flask import url_for
 
 from google.appengine.ext import db
 
@@ -49,120 +48,59 @@ class Handler(webapp2.RequestHandler):
 		self.write(self.render_str(template, **kw))
 
 
-class FoodHandler(Handler):
-	"""Accepts items to add to a shopping list, and displays it"""
-	def get(self):
-		items = self.request.get_all("food")
-		self.render("shopping_list.html", items = items)
-
-
-class FizzBuzzHandler(Handler):
-	"""Takes a number from the URL to perform fizzbuzz up to 
-	that number and display the result"""
-	def get(self):
-		n = self.request.get('n', 0)
-		n = n and int(n)
-		self.render('fizzbuzz.html', n=n)
-
-
-class Rot13Handler(Handler):
-	"""Accepts text to perform a rot13 encoding/decoding on
-	it, and then displays the result"""
-	def get(self):
-		text = self.request.get("text")
-		self.render('rot13.html', text=text)
-
-	def post(self):
-		text = self.request.get("text")
-		encoder = codecs.getencoder("rot-13")
-		encoded_text = encoder(text)[0]
-		self.render('rot13.html', text=encoded_text)
-
-
-class Art(db.Model):
-	"""Creates an entity for holding pieces of submitted ascii art"""
-	title 	= db.StringProperty(required=True)
-	art 	= db.TextProperty(required=True)
-	created = db.DateTimeProperty(auto_now_add=True)
-
-
-class Ascii(Handler):
-	"""Allows a person to submit new ascii art, and displays up to 10
-	of the most recently submitted ascii art pieces"""
-	def render_ascii(self, title="", art="", error=""):
-		arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC")
-		self.render("ascii.html", 
-        	title=title, 
-        	art=art, 
-        	error=error,
-        	arts=arts)
-
-	def get(self):
-		self.render_ascii()
-
-	def post(self):
-		title = self.request.get('title')
-		art = self.request.get('art')
-
-		if title and art:
-			a = Art(title=title, art=art)
-			a.put()
-			self.redirect("/ascii")
-		else:
-			error = "we need both a title and some artwork!"
-			self.render_ascii(title, art, error)
-
-
 def valid_username(username):
-	# Confirms that a given username conforms to my requirements
+	"""Confirms that a given username conforms to my requirements"""
 	user_re = re.compile(r'^[a-zA-Z0-9_-]{3,20}$')
 	return user_re.match(username)
 
 def valid_password(password):
-	# Confirms that a given password conforms to my requirements
+	"""Confirms that a given password conforms to my requirements"""
 	pw_re = re.compile(r"^.{3,20}$")
 	return pw_re.match(password)
 
 def valid_email(email):
-	# Confirms that a given email is probably valid
+	"""Confirms that a given email is probably valid"""
 	email_re = re.compile(r'^[\S]+@[\S]+.[\S]+$')
 	return email_re.match(email)
 
 def hash_str(s):
-	# Returns an hmac-hashed version of the input string
+	"""Returns an hmac-hashed version of the input string"""
 	return hmac.new(SECRET, s).hexdigest()
 
 def make_secure_val(s):
-	# Returns the given string and its hashed version as a single string
+	"""Returns the given string and its hashed version as a 
+	single string"""
 	return "%s|%s" % (s, hash_str(s))
 
 def check_secure_val(h):
-	# Confirms that a given string/hash pair is valid
+	"""Confirms that a given string/hash pair is valid"""
 	val = h.split("|")[0]
 	if h == make_secure_val(val):
 		return val
 
 def make_salt(length=5):
-	# Creates/returns a string of random letters, 5 by default
+	"""Creates/returns a string of random letters, 5 by default"""
 	return "".join(random.choice(string.letters) for x in range(length))
 
 def make_pw_hash(name, pw, salt=None):
-	# Uses salt to make a more secure password hash
+	"""Uses salt to make a more secure password hash"""
 	if not salt:
 		salt = make_salt()
 	h = hashlib.sha256(name + pw + salt).hexdigest()
 	return '%s,%s' % (salt, h)
 
 def valid_pw(name, password, h):
-	# Verifies that a password is valid using the hash
+	"""Verifies that a password is valid using the hash"""
 	salt = h.split(',')[0]
 	return h == make_pw_hash(name, password, salt)
 
 def users_key(group = 'default'):
-	# Returns the user's database key
+	"""Returns the user's database key"""
 	return db.Key.from_path('users', group)
 
 def check_login(cookie):
+	"""Checks for a logged-in user based on the stored cookie, 
+	and returns the username if logged in"""
 	if not cookie:
 		return False
 	else:
@@ -178,15 +116,19 @@ class User(db.Model):
 
 	@classmethod
 	def by_id(cls, uid):
+		"""Takes in a user ID, returns that user if present"""
 		return User.get_by_id(uid, parent = user_key())
 
 	@classmethod
 	def by_name(cls, name):
+		"""Takes in a user name, returns that user if present"""
 		u = User.all().filter('name =', name).get()
 		return u
 
 	@classmethod
 	def register(cls, name, pw, email = None):
+		"""Takes in user registration info, returns a user
+		DB model object"""
 		pw_hash = make_pw_hash(name, pw)
 		return User(parent=users_key(),
 			name=name,
@@ -195,15 +137,18 @@ class User(db.Model):
 
 	@classmethod
 	def login(cls, name, pw):
+		"""Takes in login info, and returns that user if 
+		the login info is valid"""
 		u = cls.by_name(name)
 		if u and valid_pw(name, pw, u.pw_hash):
 			return u
 
 
 class SignupHandler(Handler):
-	"""Allows a user to signup, enforcing rules for username, password
-	and allowing an optional email input (also checked for validity).
-	Then sets a cookie and sends the user to the welcome page"""
+	"""Allows a user to signup, enforcing rules for username, 
+	password and allowing an optional email input (also checked 
+	for validity). Then sets a cookie and sends the user to the 
+	welcome page"""
 	def get(self):
 		self.render('signup.html')
 
@@ -253,8 +198,9 @@ class SignupHandler(Handler):
 
 
 class LoginHandler(Handler):
-	"""Allows users to log in, enforcing rules for username and password.
-	If valid, sets a cookie and redirects to the welcome page."""
+	"""Allows users to log in, enforcing rules for username and 
+	password. If valid, sets a cookie and redirects to the 
+	welcome page."""
 	def get(self):
 		self.render('login.html')
 
@@ -298,9 +244,9 @@ class LogoutHandler(Handler):
 
 
 class WelcomeHandler(Handler):
-	"""Greets a user who has signed up or logged in, using the set cookie
-	to display their username.  If the cookie is invalid, redirects
-	to the signup page"""
+	"""Greets a user who has signed up or logged in, using the 
+	set cookie to display their username.  If the cookie is 
+	invalid, it redirects to the signup page"""
 	def get(self):
 		user_name_cookie = self.request.cookies.get('name')
 		user = check_login(user_name_cookie)
@@ -331,8 +277,10 @@ class SinglePost(Handler):
 	"""Displays an individual blog post as identified in the URL"""
 	def get(self, post_id):
 		post = BlogEntry.get_by_id(int(post_id))
+		user_name_cookie = self.request.cookies.get('name')
+		user = check_login(user_name_cookie)
 		if post:
-			self.render("permalink.html", post=post)
+			self.render("permalink.html", post=post, user=user)
 		else:
 			self.error(404)
 			return
@@ -349,10 +297,10 @@ class NewBlogPost(Handler):
 			self.redirect("/signup")
 
 	def post(self):
-		title = self.request.get("subject")
+		title 	= self.request.get("subject")
 		content = self.request.get("content")
-		cookie = self.request.cookies.get('name')
-		user = check_login(cookie)
+		cookie 	= self.request.cookies.get('name')
+		user 	= check_login(cookie)
 		if title and content:
 			post = BlogEntry(title=title, content=content)
 			post.put()
@@ -367,13 +315,9 @@ class NewBlogPost(Handler):
 
 app = webapp2.WSGIApplication([
 	('/', Blog),
-    ('/ascii', Ascii),
     ('/blog', Blog),
     ('/blog/newpost', NewBlogPost),
     ('/blog/(\w+)', SinglePost),
-    ('/food', FoodHandler),
-    ('/fizzbuzz', FizzBuzzHandler),
-    ('/rot13', Rot13Handler),
     ('/signup', SignupHandler),
     ('/login', LoginHandler),
     ('/logout', LogoutHandler),
@@ -383,13 +327,11 @@ app = webapp2.WSGIApplication([
 
 '''
 TODO:
-	- add login button to all necessary pages
-	- add logout button to all necessary pages
-	- add signin button to all necessary pages
-	- if needed, restructure templates to allow for these buttons
-	- add redirect links to all pages for easier navigation
-	- ? add edit button to each blog post ?
+	- add edit and delete buttons to each blog post 
+		but only for the user who created that post
+	- users can like/unlike posts, but receive an error
+		if they try to like their own post
+	- users can comment on posts
 	- restructure templates to separate concerns
 
-	- Fix issue with url_for() in templates
 '''

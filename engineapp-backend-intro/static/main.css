@@ -1,0 +1,70 @@
+body {
+	font-family: sans-serif;
+	width: 800px;
+	margin: 0 auto;
+	padding: 10px;
+}
+
+.error{
+	color: red;
+}
+
+.title{
+	font-weight: bold;
+	float: left;
+}
+
+.date{
+	font-style: italic;
+	float: right;
+}
+
+.content{
+	clear: both;
+}
+
+label {
+	display: block;
+	font-size: 20px;
+}
+
+textarea {
+	width: 400px;
+	height: 200px;
+	font-size: 17px;
+	font-family: monospace;
+}
+
+input[type=submit] {
+	font-size: 24px;
+}
+
+hr {
+	margin: 20px auto;
+}
+
+.container {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.button {
+	background: gray;
+	padding: 2px;
+	margin: 0 2px 0 2px;
+	border: 1px solid black;
+}
+
+.button:hover {
+	background: white;
+}
+
+.large-text {
+	width: 400px;
+	font-size: 20px;
+	padding: 2px;
+}
+
+#right {
+	margin-left: auto;
+}
