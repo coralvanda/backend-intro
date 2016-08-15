@@ -1,0 +1,26 @@
+{% extends "blogbase.html" %}
+
+{% block content %}
+
+
+{% include 'logout-header.html' %}
+
+
+<body>
+	<h2>Edit your post</h2>
+	<div>{{ error }}</div>
+	<form method="post">
+		<label>
+			<div>Title</div>
+			<input class="large-text" type='text' name='subject' value="{{ post.title }}">
+		</label>
+		<input hidden type="text" name="id" value="{{ post_id }}">
+		<label>
+			<div>Blog</div>
+			<textarea name="content">{{ post.content }}</textarea>
+		</label>
+		<input type="submit">
+	</form>
+</body>
+
+{% endblock %}

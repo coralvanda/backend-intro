@@ -260,6 +260,7 @@ class BlogEntry(db.Model):
 	"""Creates an entity for storing blog entries"""
 	title 	= db.StringProperty(required=True)
 	content = db.TextProperty(required=True)
+	creator = db.StringProperty(required=True)
 	created = db.DateTimeProperty(auto_now_add=True)
 
 
@@ -301,16 +302,52 @@ class NewBlogPost(Handler):
 		content = self.request.get("content")
 		cookie 	= self.request.cookies.get('name')
 		user 	= check_login(cookie)
-		if title and content:
-			post = BlogEntry(title=title, content=content)
+		if title and content and user:
+			post = BlogEntry(title=title, 
+							content=content,
+							creator=user)
 			post.put()
 			post_id = post.key().id()
-			self.redirect('/blog/%s' % post_id)
+			self.redirect("/blog/%s" % post_id)
 		else:
 			error = "You must include both a title and content"
-			self.render("/newpost", 
+			self.render("/newpost.html", 
 				title=title, content=content, 
 				error=error, user=user)
+
+
+class EditBlogPost(Handler):
+	"""Accepts a post ID, and allows the creator to edit it.
+	If a user other than the creator tries, they receive an error"""
+	def get(self, post_id):
+		post = BlogEntry.get_by_id(int(post_id))
+		if not post:
+			self.error(404)
+			return
+		user_name_cookie = self.request.cookies.get('name')
+		user = check_login(user_name_cookie)
+		if not user or post.creator != user:
+			self.error(403)
+			self.redirect("/login")
+		self.render("/editpost.html", post=post, post_id=post_id)
+
+	def post(self):
+		post_id = self.request.get("post_id")
+		title	= self.request.get("subject")
+		content	= self.request.get("content")
+		cookie 	= self.request.cookies.get("name")
+		user 	= check_login(cookie)
+		if title and content and user:
+			post = BlogEntry.get_by_id(int(post_id))
+			post.title = title
+			post.content = content
+			post.creator = user
+			post.put()
+			self.redirect("/blog/%s" % post_id)
+		else:
+			error = "You must include both a title and content"
+			self.render("/editpost.html", 
+				post=post, post_id=post_id)
 
 
 app = webapp2.WSGIApplication([
@@ -334,4 +371,5 @@ TODO:
 	- users can comment on posts
 	- restructure templates to separate concerns
 
+	- Getting badvalueerror after trying to implement edit feature
 '''
