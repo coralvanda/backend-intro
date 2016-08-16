@@ -16,13 +16,17 @@
 	<div class="title">{{ blog_post.title }}</div>
 	<div class="date">{{ blog_post.created.strftime("%b %d, %Y") }}</div>
 	<div class="modify">
-		Delete
+		<a href="/blog/delete/{{ post_id }}" id="confirmDel">
+			Delete
+		</a>
 	</div>
 	<div class="modify">
 		<a href="/blog/edit/{{ post_id }}">Edit</a>
 	</div>
 	<hr class="content">
 	<div class="content">{{ blog_post.content }}</div>
+
+	<script src="../static/app.js"></script>
 </body>
 
 {% endblock %}

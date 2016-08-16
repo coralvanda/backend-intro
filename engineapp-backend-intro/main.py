@@ -337,7 +337,6 @@ class EditBlogPost(Handler):
 			title=title, content=content, post_id=post_id)
 
 	def post(self, post_id):
-		#post_id = self.request.get("post_id")
 		title	= self.request.get("subject")
 		content	= self.request.get("content")
 		cookie 	= self.request.cookies.get("name")
@@ -356,11 +355,30 @@ class EditBlogPost(Handler):
 				error=error, post_id=post_id)
 
 
+class DeletePost(Handler):
+	"""Accepts a post ID, and deletes it from the DB.
+	If a user other than the creator tries, they receive an error"""
+	def post(self, post_id):
+		blog_post = BlogEntry.get_by_id(int(post_id))
+		if not blog_post:
+			self.error(404)
+			return
+		user_name_cookie = self.request.cookie.get('name')
+		user = check_login(user_name_cookie)
+		if not user or blog_post.creator != user:
+			self.error(403)
+			self.redirect("/login")
+		else:
+			db.delete(blog_post.key())
+			self.redirect("/blog")
+
+
 app = webapp2.WSGIApplication([
 	('/', Blog),
     ('/blog', Blog),
     ('/blog/newpost', NewBlogPost),
     ('/blog/edit/(\w+)', EditBlogPost),
+    ('/blog/delete/(\w+)', DeletePost),
     ('/blog/(\w+)', SinglePost),
     ('/signup', SignupHandler),
     ('/login', LoginHandler),
@@ -378,5 +396,9 @@ TODO:
 	- users can comment on posts
 	- restructure templates to separate concerns
 
-	- Getting badvalueerror after trying to implement edit feature
+	- trouble with delete link
+		I wanted to have Javascript confirm before the link
+		executes, which then deletes the entity, but there's 
+		an issue.  I may need to build a page for deleting
+		so I can have a GET and a POST function
 '''
