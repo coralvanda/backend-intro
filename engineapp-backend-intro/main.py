@@ -277,11 +277,12 @@ class Blog(Handler):
 class SinglePost(Handler):
 	"""Displays an individual blog post as identified in the URL"""
 	def get(self, post_id):
-		post = BlogEntry.get_by_id(int(post_id))
+		blog_post = BlogEntry.get_by_id(int(post_id))
 		user_name_cookie = self.request.cookies.get('name')
 		user = check_login(user_name_cookie)
-		if post:
-			self.render("permalink.html", post=post, user=user)
+		if blog_post:
+			self.render("permalink.html", 
+				blog_post=blog_post, post_id=post_id, user=user)
 		else:
 			self.error(404)
 			return
@@ -303,11 +304,11 @@ class NewBlogPost(Handler):
 		cookie 	= self.request.cookies.get('name')
 		user 	= check_login(cookie)
 		if title and content and user:
-			post = BlogEntry(title=title, 
+			blog_post = BlogEntry(title=title, 
 							content=content,
 							creator=user)
-			post.put()
-			post_id = post.key().id()
+			blog_post.put()
+			post_id = blog_post.key().id()
 			self.redirect("/blog/%s" % post_id)
 		else:
 			error = "You must include both a title and content"
@@ -320,40 +321,46 @@ class EditBlogPost(Handler):
 	"""Accepts a post ID, and allows the creator to edit it.
 	If a user other than the creator tries, they receive an error"""
 	def get(self, post_id):
-		post = BlogEntry.get_by_id(int(post_id))
-		if not post:
+		blog_post = BlogEntry.get_by_id(int(post_id))
+		if not blog_post:
 			self.error(404)
 			return
+		title = blog_post.title
+		content = blog_post.content
 		user_name_cookie = self.request.cookies.get('name')
 		user = check_login(user_name_cookie)
-		if not user or post.creator != user:
+		if not user or blog_post.creator != user:
 			self.error(403)
 			self.redirect("/login")
-		self.render("/editpost.html", post=post, post_id=post_id)
 
-	def post(self):
-		post_id = self.request.get("post_id")
+		self.render("/editpost.html", 
+			title=title, content=content, post_id=post_id)
+
+	def post(self, post_id):
+		#post_id = self.request.get("post_id")
 		title	= self.request.get("subject")
 		content	= self.request.get("content")
 		cookie 	= self.request.cookies.get("name")
 		user 	= check_login(cookie)
 		if title and content and user:
-			post = BlogEntry.get_by_id(int(post_id))
-			post.title = title
-			post.content = content
-			post.creator = user
-			post.put()
+			blog_post = BlogEntry.get_by_id(int(post_id))
+			blog_post.title = title
+			blog_post.content = content
+			blog_post.creator = user
+			blog_post.put()
 			self.redirect("/blog/%s" % post_id)
 		else:
 			error = "You must include both a title and content"
 			self.render("/editpost.html", 
-				post=post, post_id=post_id)
+				title=title, content=content,
+				error=error, post_id=post_id)
 
 
 app = webapp2.WSGIApplication([
 	('/', Blog),
     ('/blog', Blog),
     ('/blog/newpost', NewBlogPost),
+    ('/blog/edit/(\w+)', EditBlogPost),
     ('/blog/(\w+)', SinglePost),
     ('/signup', SignupHandler),
     ('/login', LoginHandler),

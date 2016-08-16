@@ -1,23 +1,25 @@
 {% extends "blogbase.html" %}
 
+{% block head %}
+	<title>Edit post</title>
+	<link rel="stylesheet" href="../static/main.css">
+{% endblock head %}
+
 {% block content %}
 
-
-{% include 'logout-header.html' %}
-
-
 <body>
+	{% include 'logout-header.html' %}
 	<h2>Edit your post</h2>
-	<div>{{ error }}</div>
+	<div class="error">{{ error }}</div>
 	<form method="post">
 		<label>
 			<div>Title</div>
-			<input class="large-text" type='text' name='subject' value="{{ post.title }}">
+			<input class="large-text" type='text' name='subject' value="{{ title }}">
 		</label>
-		<input hidden type="text" name="id" value="{{ post_id }}">
+
 		<label>
 			<div>Blog</div>
-			<textarea name="content">{{ post.content }}</textarea>
+			<textarea name="content">{{ content }}</textarea>
 		</label>
 		<input type="submit">
 	</form>

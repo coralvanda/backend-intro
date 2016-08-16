@@ -1,14 +1,19 @@
 {% extends "blogbase.html" %}
 
+{% block head %}
+	<title>New post</title>
+	<link rel="stylesheet" href="../static/main.css">
+{% endblock head %}
+
 {% block content %}
 
-{% if user %}
-    {% include 'logout-header.html' %}
-{% else %}
-    {% include 'login-header.html' %}
-{% endif %}
-
 <body>
+	{% if user %}
+    	{% include "logout-header.html" %}
+	{% else %}
+    	{% include "login-header.html" %}
+	{% endif %}
+	
 	<h2>Enter a new blog post</h2>
 	<div>{{error}}</div>
 	<form method="post">

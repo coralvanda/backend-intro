@@ -1,20 +1,28 @@
 {% extends 'blogbase.html' %}
 
+{% block head %}
+	<title>View post</title>
+	<link rel="stylesheet" href="../static/main.css">
+{% endblock head %}
+
 {% block content %}
-
-{% if user %}
-    {% include 'logout-header.html' %}
-{% else %}
-    {% include 'login-header.html' %}
-{% endif %}
-
 <body>
-	<div class="title">{{post.title}}</div>
-	<div class="date">{{post.created.strftime("%b %d, %Y")}}</div>
+	{% if user %}
+    	{% include 'logout-header.html' %}
+	{% else %}
+    	{% include 'login-header.html' %}
+	{% endif %}
+
+	<div class="title">{{ blog_post.title }}</div>
+	<div class="date">{{ blog_post.created.strftime("%b %d, %Y") }}</div>
+	<div class="modify">
+		Delete
+	</div>
+	<div class="modify">
+		<a href="/blog/edit/{{ post_id }}">Edit</a>
+	</div>
 	<hr class="content">
-	<div class="content">{{post.content}}</div>
-	<br>
-	<br>
+	<div class="content">{{ blog_post.content }}</div>
 </body>
 
 {% endblock %}
