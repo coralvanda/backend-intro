@@ -19,13 +19,16 @@
 			{{ blog_post.created.strftime("%b %d, %Y") }}
 		</div>
 		<div class="modify">
-			Delete
+			<a href="/blog/delete/{{ blog_post.key.id() }}" id="confirmDel">
+				Delete
+			</a>
 		</div>
 		<div class="modify">
-			<a href="/blog/edit/{{ blog_post.key().id() }}">Edit</a>
+			<a href="/blog/edit/{{ blog_post.key.id() }}">Edit</a>
 		</div>
 		<hr class="content">
 		<div class="content">{{ blog_post.content }}</div>
 	{% endfor %}
+	<script src="../static/app.js"></script>
 </body>
 {% endblock %}

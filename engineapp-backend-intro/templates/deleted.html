@@ -1,0 +1,14 @@
+{% extends 'blogbase.html' %}
+
+{% block content %}
+
+<body>
+	{% if user %}
+    	{% include "logout-header.html" %}
+	{% else %}
+	    {% include "login-header.html" %}
+	{% endif %}
+	<h2>Post deleted</h2>
+</body>
+
+{% endblock %}

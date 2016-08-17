@@ -26,7 +26,7 @@ import datetime
 import random
 import string
 
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 
 SECRET = 'secret_cookie_string'
 
@@ -96,7 +96,8 @@ def valid_pw(name, password, h):
 
 def users_key(group = 'default'):
 	"""Returns the user's database key"""
-	return db.Key.from_path('users', group)
+	#return ndb.Key.from_path('users', group)
+	return ndb.Key('users', group)
 
 def check_login(cookie):
 	"""Checks for a logged-in user based on the stored cookie, 
@@ -107,12 +108,12 @@ def check_login(cookie):
 		return check_secure_val(cookie)
 
 
-class User(db.Model):
+class User(ndb.Model):
 	"""Creates an entity for storing users and provides
 	functionality for finding and handling users"""
-	name = db.StringProperty(required=True)
-	pw_hash = db.StringProperty(required=True)
-	email = db.StringProperty()
+	name = ndb.StringProperty(required=True)
+	pw_hash = ndb.StringProperty(required=True)
+	email = ndb.StringProperty()
 
 	@classmethod
 	def by_id(cls, uid):
@@ -256,19 +257,21 @@ class WelcomeHandler(Handler):
 			self.redirect('/signup')
 
 
-class BlogEntry(db.Model):
+class BlogEntry(ndb.Model):
 	"""Creates an entity for storing blog entries"""
-	title 	= db.StringProperty(required=True)
-	content = db.TextProperty(required=True)
-	creator = db.StringProperty(required=True)
-	created = db.DateTimeProperty(auto_now_add=True)
+	title 	= ndb.StringProperty(required=True)
+	content = ndb.TextProperty(required=True)
+	creator = ndb.StringProperty(required=True)
+	liked	= ndb.StringProperty(repeated=True)
+	created = ndb.DateTimeProperty(auto_now_add=True)
 
 
 class Blog(Handler):
 	"""Serves the front page of the blog, 
 	displaying most recent entries first"""
 	def get(self):
-		posts = db.GqlQuery("SELECT * FROM BlogEntry ORDER BY created DESC limit 10")
+		posts = ndb.gql("SELECT * FROM BlogEntry ORDER BY created DESC limit 10")
+		#posts = BlogEntry.query().order(-BlogEntry.created)
 		cookie = self.request.cookies.get('name')
 		user = check_login(cookie)
 		self.render('blog.html', user=user, posts=posts)
@@ -308,7 +311,7 @@ class NewBlogPost(Handler):
 							content=content,
 							creator=user)
 			blog_post.put()
-			post_id = blog_post.key().id()
+			post_id = blog_post.key.id()
 			self.redirect("/blog/%s" % post_id)
 		else:
 			error = "You must include both a title and content"
@@ -358,19 +361,19 @@ class EditBlogPost(Handler):
 class DeletePost(Handler):
 	"""Accepts a post ID, and deletes it from the DB.
 	If a user other than the creator tries, they receive an error"""
-	def post(self, post_id):
+	def get(self, post_id):
 		blog_post = BlogEntry.get_by_id(int(post_id))
 		if not blog_post:
 			self.error(404)
 			return
-		user_name_cookie = self.request.cookie.get('name')
+		user_name_cookie = self.request.cookies.get("name")
 		user = check_login(user_name_cookie)
 		if not user or blog_post.creator != user:
 			self.error(403)
 			self.redirect("/login")
 		else:
-			db.delete(blog_post.key())
-			self.redirect("/blog")
+			blog_post.key.delete()
+			self.render("/deleted.html")
 
 
 app = webapp2.WSGIApplication([
@@ -389,16 +392,9 @@ app = webapp2.WSGIApplication([
 
 '''
 TODO:
-	- add edit and delete buttons to each blog post 
-		but only for the user who created that post
 	- users can like/unlike posts, but receive an error
 		if they try to like their own post
 	- users can comment on posts
 	- restructure templates to separate concerns
 
-	- trouble with delete link
-		I wanted to have Javascript confirm before the link
-		executes, which then deletes the entity, but there's 
-		an issue.  I may need to build a page for deleting
-		so I can have a GET and a POST function
 '''
