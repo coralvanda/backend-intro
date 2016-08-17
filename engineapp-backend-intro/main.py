@@ -123,7 +123,7 @@ class User(ndb.Model):
 	@classmethod
 	def by_name(cls, name):
 		"""Takes in a user name, returns that user if present"""
-		u = User.all().filter('name =', name).get()
+		u = User.query(User.name == name).get()
 		return u
 
 	@classmethod
@@ -376,12 +376,31 @@ class DeletePost(Handler):
 			self.render("/deleted.html")
 
 
+class LikePost(Handler):
+	"""Insert docstring"""
+	def get(self, post_id):
+		blog_post = BlogEntry.get_by_id(int(post_id))
+		if not blog_post:
+			self.error(404)
+			return
+		user_name_cookie = self.request.cookies.get("name")
+		user = check_login(user_name_cookie)
+		if not user or blog_post.creator == user:
+			self.error(403)
+			self.redirect("/blog")
+		else:
+			blog_post.liked.append(user)
+			blog_post.put()
+			self.redirect("/blog/" + post_id)
+
+
 app = webapp2.WSGIApplication([
 	('/', Blog),
     ('/blog', Blog),
     ('/blog/newpost', NewBlogPost),
     ('/blog/edit/(\w+)', EditBlogPost),
     ('/blog/delete/(\w+)', DeletePost),
+    ('/blog/like/(\w+)', LikePost),
     ('/blog/(\w+)', SinglePost),
     ('/signup', SignupHandler),
     ('/login', LoginHandler),
@@ -397,4 +416,6 @@ TODO:
 	- users can comment on posts
 	- restructure templates to separate concerns
 
+
+	- FIX: users can currently like a post multiple times
 '''

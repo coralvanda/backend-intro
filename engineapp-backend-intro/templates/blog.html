@@ -14,20 +14,35 @@
 	</h1>
 
 	{% for blog_post in posts %}
-		<div class="title">{{ blog_post.title }}</div>
-		<div class="date">
-			{{ blog_post.created.strftime("%b %d, %Y") }}
+		<div class="entry">
+			<div class="title">{{ blog_post.title }}</div>
+			<div class="date">
+				{{ blog_post.created.strftime("%b %d, %Y") }}
+			</div>
+			<div class="modify">
+				<a href="/blog/delete/{{ blog_post.key.id() }}" id="confirmDel">
+					Delete
+				</a>
+			</div>
+			<div class="modify">
+				<a href="/blog/edit/{{ blog_post.key.id() }}">Edit</a>
+			</div>
+			<div class="modify">
+				<a href="/blog/{{ blog_post.key.id() }}">
+					View post and comments
+				</a>
+			</div>
+			<div class="modify">
+				<a href="/blog/like/{{ blog_post.key.id() }}">
+					Like
+				</a>
+			</div>
+			<div class="modify">
+				Likes: {{ blog_post.liked|length }}
+			</div>
+			<hr class="content">
+			<div class="content">{{ blog_post.content }}</div>
 		</div>
-		<div class="modify">
-			<a href="/blog/delete/{{ blog_post.key.id() }}" id="confirmDel">
-				Delete
-			</a>
-		</div>
-		<div class="modify">
-			<a href="/blog/edit/{{ blog_post.key.id() }}">Edit</a>
-		</div>
-		<hr class="content">
-		<div class="content">{{ blog_post.content }}</div>
 	{% endfor %}
 	<script src="../static/app.js"></script>
 </body>

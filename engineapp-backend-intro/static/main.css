@@ -9,6 +9,10 @@ body {
 	color: red;
 }
 
+.entry {
+	background: lightblue;
+}
+
 .title {
 	font-weight: bold;
 	float: left;
