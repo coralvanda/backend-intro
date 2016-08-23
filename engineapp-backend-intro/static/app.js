@@ -4,5 +4,8 @@ function confirmDelete(e) {
 	}
 }
 
-var elem = document.getElementById("confirmDel");
-elem.addEventListener("click", confirmDelete, false);
+var elems = document.getElementsByClassName("confirmDel");
+for (i = 0; i < elems.length; i++){
+	var elem = elems[i];
+	elem.addEventListener("click", confirmDelete, false);
+}

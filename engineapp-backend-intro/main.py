@@ -146,10 +146,11 @@ class User(ndb.Model):
 
 
 class SignupHandler(Handler):
-	"""Allows a user to signup, enforcing rules for username, 
-	password and allowing an optional email input (also checked 
-	for validity). Then sets a cookie and sends the user to the 
-	welcome page"""
+	"""Allows a user to signup.
+
+	Enforces rules for username, password and allows an optional 
+	email input, which is also checked for validity. Then sets a 
+	cookie and sends the user to the welcome page"""
 	def get(self):
 		self.render('signup.html')
 
@@ -199,9 +200,10 @@ class SignupHandler(Handler):
 
 
 class LoginHandler(Handler):
-	"""Allows users to log in, enforcing rules for username and 
-	password. If valid, sets a cookie and redirects to the 
-	welcome page."""
+	"""Allows users to log in.
+
+	Enforces rules for username and password. If valid, sets 
+	a cookie and redirects to the welcome page."""
 	def get(self):
 		self.render('login.html')
 
@@ -235,8 +237,7 @@ class LoginHandler(Handler):
 
 
 class LogoutHandler(Handler):
-	"""Clears the cookie set by either the login or signup page, then
-	redirects back to the signup page."""
+	"""Clears the cookie set by the login or signup page."""
 	def get(self):
 		user_name_cookie = self.request.cookies.get('name')
 		if user_name_cookie:
@@ -245,9 +246,11 @@ class LogoutHandler(Handler):
 
 
 class WelcomeHandler(Handler):
-	"""Greets a user who has signed up or logged in, using the 
-	set cookie to display their username.  If the cookie is 
-	invalid, it redirects to the signup page"""
+	"""Greets a user.
+
+	Only available to those who have signed up or logged in.  
+	Uses the set cookie to display their username.  If the 
+	cookie is invalid, it redirects to the signup page"""
 	def get(self):
 		user_name_cookie = self.request.cookies.get('name')
 		user = check_login(user_name_cookie)
@@ -267,8 +270,7 @@ class BlogEntry(ndb.Model):
 
 
 class Blog(Handler):
-	"""Serves the front page of the blog, 
-	displaying most recent entries first"""
+	"""Serves the blog's front page, displays most recent entries first"""
 	def get(self):
 		posts = ndb.gql("SELECT * FROM BlogEntry ORDER BY created DESC limit 10")
 		#posts = BlogEntry.query().order(-BlogEntry.created)
@@ -322,6 +324,7 @@ class NewBlogPost(Handler):
 
 class EditBlogPost(Handler):
 	"""Accepts a post ID, and allows the creator to edit it.
+	
 	If a user other than the creator tries, they receive an error"""
 	def get(self, post_id):
 		blog_post = BlogEntry.get_by_id(int(post_id))
@@ -332,12 +335,14 @@ class EditBlogPost(Handler):
 		content = blog_post.content
 		user_name_cookie = self.request.cookies.get('name')
 		user = check_login(user_name_cookie)
-		if not user or blog_post.creator != user:
+		if not user:
 			self.error(403)
 			self.redirect("/login")
-
-		self.render("/editpost.html", 
-			title=title, content=content, post_id=post_id)
+		elif blog_post.creator != user:
+			self.render("/blog.html", error="Must be OP to edit this post")
+		else:
+			self.render("/editpost.html", 
+				title=title, content=content, post_id=post_id)
 
 	def post(self, post_id):
 		title	= self.request.get("subject")
@@ -360,6 +365,7 @@ class EditBlogPost(Handler):
 
 class DeletePost(Handler):
 	"""Accepts a post ID, and deletes it from the DB.
+
 	If a user other than the creator tries, they receive an error"""
 	def get(self, post_id):
 		blog_post = BlogEntry.get_by_id(int(post_id))
@@ -368,16 +374,22 @@ class DeletePost(Handler):
 			return
 		user_name_cookie = self.request.cookies.get("name")
 		user = check_login(user_name_cookie)
-		if not user or blog_post.creator != user:
-			self.error(403)
+		if not user:
 			self.redirect("/login")
+		elif blog_post.creator != user:
+			self.error(403)
+			#self.redirect("/login")
+			self.render("/blog.html", error="Must be logged in as OP")
 		else:
 			blog_post.key.delete()
 			self.render("/deleted.html")
 
 
 class LikePost(Handler):
-	"""Insert docstring"""
+	"""Accepts a post ID and allows a user to like a post.
+	
+	If the user is not logged in, if it's his own post,
+	or if he has already liked the post, he will be redirected."""
 	def get(self, post_id):
 		blog_post = BlogEntry.get_by_id(int(post_id))
 		if not blog_post:
@@ -385,9 +397,13 @@ class LikePost(Handler):
 			return
 		user_name_cookie = self.request.cookies.get("name")
 		user = check_login(user_name_cookie)
-		if not user or blog_post.creator == user:
+		if not user:
+			self.redirect("/login")
+		elif blog_post.creator == user:
 			self.error(403)
-			self.redirect("/blog")
+			self.render("/blog.html", error="Must be logged in, but not as OP")
+		elif user in blog_post.liked:
+			self.render("/blog.html", error="May only like a post one time")
 		else:
 			blog_post.liked.append(user)
 			blog_post.put()
@@ -411,11 +427,5 @@ app = webapp2.WSGIApplication([
 
 '''
 TODO:
-	- users can like/unlike posts, but receive an error
-		if they try to like their own post
 	- users can comment on posts
-	- restructure templates to separate concerns
-
-
-	- FIX: users can currently like a post multiple times
 '''

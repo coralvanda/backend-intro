@@ -12,7 +12,7 @@
 	<h1>
 		Blog entries
 	</h1>
-
+	<div class="error">{{ error }}</div>
 	{% for blog_post in posts %}
 		<div class="entry">
 			<div class="title">{{ blog_post.title }}</div>
@@ -20,7 +20,7 @@
 				{{ blog_post.created.strftime("%b %d, %Y") }}
 			</div>
 			<div class="modify">
-				<a href="/blog/delete/{{ blog_post.key.id() }}" id="confirmDel">
+				<a href="/blog/delete/{{ blog_post.key.id() }}" class="confirmDel">
 					Delete
 				</a>
 			</div>

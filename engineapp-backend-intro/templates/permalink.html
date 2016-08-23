@@ -12,12 +12,14 @@
 	{% else %}
     	{% include 'login-header.html' %}
 	{% endif %}
+	
 	<h1>Entry</h1>
+	<div class="error">{{ error }}</div>
 	<div class="entry">
 		<div class="title">{{ blog_post.title }}</div>
 		<div class="date">{{ blog_post.created.strftime("%b %d, %Y") }}</div>
 		<div class="modify">
-			<a href="/blog/delete/{{ post_id }}" id="confirmDel">
+			<a href="/blog/delete/{{ post_id }}" class="confirmDel">
 				Delete
 			</a>
 		</div>
