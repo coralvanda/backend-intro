@@ -48,6 +48,11 @@ p {
 	background: lightblue;
 }
 
+.comment {
+	background: lightblue;
+	margin-left: 30px;
+}
+
 .title {
 	font-weight: bold;
 	float: left;

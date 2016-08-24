@@ -27,6 +27,7 @@ from google.appengine.ext import ndb
 
 from models import User
 from models import BlogEntry
+from models import Comment
 
 SECRET = 'secret_cookie_string'
 
@@ -213,7 +214,10 @@ class Blog(Handler):
 
 
 class SinglePost(Handler):
-	"""Displays an individual blog post as identified in the URL"""
+	"""Displays an individual blog post as identified in the URL.
+
+	Also allows for comments to be created for this blog entry, 
+	using the post method."""
 	def get(self, post_id):
 		blog_post = BlogEntry.get_by_id(int(post_id))
 		user_name_cookie = self.request.cookies.get('name')
@@ -224,6 +228,25 @@ class SinglePost(Handler):
 		else:
 			self.error(404)
 			return
+
+	def post(self, post_id):
+		content = self.request.get("content")
+		cookie 	= self.request.cookies.get('name')
+		user 	= check_login(cookie)
+		blog_post = BlogEntry.get_by_id(int(post_id))
+		if not user:
+			self.redirect("/signup")
+		elif content:
+			blog_post.comments.append(Comment(content=content,
+										creator=user))
+			blog_post.put()
+			self.redirect("/blog/%s" % post_id)
+		else:
+			error = "You must include content"
+			self.render("/permalink.html",
+				blog_post=blog_post, post_id=post_id,
+				content=content, 
+				error=error, user=user)
 
 
 class NewBlogPost(Handler):
@@ -311,7 +334,6 @@ class DeletePost(Handler):
 			self.redirect("/login")
 		elif blog_post.creator != user:
 			self.error(403)
-			#self.redirect("/login")
 			self.render("/blog.html", error="May only delete your own posts")
 		else:
 			blog_post.key.delete()
@@ -343,6 +365,66 @@ class LikePost(Handler):
 			self.redirect("/blog/" + post_id)
 
 
+class EditComment(Handler):
+	"""Accepts a comment ID, and allows the creator to edit it.
+	
+	If a user other than the creator tries, they receive an error"""
+	def get(self, comment_id):
+		comment = Comment.get_by_id(int(comment_id))
+		if not comment:
+			self.error(404)
+			return
+		content = comment.content
+		user_name_cookie = self.request.cookies.get('name')
+		user = check_login(user_name_cookie)
+		if not user:
+			self.error(403)
+			self.redirect("/login")
+		elif comment.creator != user:
+			self.render("/blog.html", error="May only edit your own posts")
+		else:
+			self.render("/editcomment.html", 
+				content=content)
+
+	def post(self, comment_id):
+		content	= self.request.get("content")
+		cookie 	= self.request.cookies.get("name")
+		user 	= check_login(cookie)
+		if not user:
+			self.redirect("/login")
+		elif content:
+			comment = Comment.get_by_id(int(comment_id))
+			comment.content = content
+			comment.creator = user
+			comment.put()
+			self.redirect("/blog")
+		else:
+			error = "You must include content"
+			self.render("/editcomment.html", 
+				content=content, error=error)
+
+
+class DeleteComment(Handler):
+	"""Accepts a comment ID, and deletes it from the DB.
+
+	If a user other than the creator tries, they receive an error"""
+	def get(self, comment_id):
+		comment = Comment.get_by_id(int(comment_id))
+		if not comment:
+			self.error(404)
+			return
+		user_name_cookie = self.request.cookies.get("name")
+		user = check_login(user_name_cookie)
+		if not user:
+			self.redirect("/login")
+		elif comment.creator != user:
+			self.error(403)
+			self.render("/blog.html", error="May only delete your own posts")
+		else:
+			comment.key.delete()
+			self.render("/deleted.html")
+
+
 app = webapp2.WSGIApplication([
 	('/', Blog),
     ('/blog', Blog),
@@ -351,6 +433,8 @@ app = webapp2.WSGIApplication([
     ('/blog/delete/(\w+)', DeletePost),
     ('/blog/like/(\w+)', LikePost),
     ('/blog/(\w+)', SinglePost),
+    ('/comment/edit/(\w+)', EditComment),
+    ('/comment/delete/(\w+)', DeleteComment),
     ('/signup', SignupHandler),
     ('/login', LoginHandler),
     ('/logout', LogoutHandler),
@@ -361,4 +445,10 @@ app = webapp2.WSGIApplication([
 '''
 TODO:
 	- users can comment on posts
+		FIX: cannot reference comment.key.id() because they
+		have no keys.  need to restructure in such a way to 
+		retain functionality without using comment.key.id()
+	- remove post_id=post_id from editpost handler?
+
+
 '''

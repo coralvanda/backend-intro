@@ -39,6 +39,41 @@
 		</div>
 	</div>
 
+	{% for comment in blog_post.comments %}
+		<div class="comment">
+			<div class="title">{{ comment.title }}</div>
+			<div class="date">
+				{{ comment.created.strftime("%b %d, %Y") }}
+			</div>
+			<div class="modify">
+				<a href="/comment/delete/{{ comment.key.id() }}" class="confirmDel">
+					Delete
+				</a>
+			</div>
+			<div class="modify">
+				<a href="/comment/edit/{{ comment.key.id() }}">	Edit
+				</a>
+			</div>
+			<hr class="content">
+			<pre class="content">{{ comment.content }}</pre>
+			<div class="content">
+				<p>Author: {{ comment.creator }}</p>
+			</div>
+		</div>
+	{% endfor %}
+
+	<h2>Enter a new comment on this post</h2>
+	<div class="error">{{ error }}</div>
+	<form method="post">
+		<label>
+			<div>Comment</div>
+			<textarea name="content">{{ content }}</textarea>
+		</label>
+		<input type="submit" value="Post">
+		<a href="/blog/{{ post_id }}">Cancel</a>
+	</form>
+
+
 	<script src="../static/app.js"></script>
 </body>
 

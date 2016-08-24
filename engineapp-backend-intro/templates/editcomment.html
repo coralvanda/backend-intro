@@ -1,0 +1,24 @@
+{% extends "blogbase.html" %}
+
+{% block head %}
+	<title>Edit comment</title>
+	<link rel="stylesheet" href="/static/main.css">
+{% endblock head %}
+
+{% block content %}
+
+<body>
+	{% include 'logout-header.html' %}
+	<h2>Edit your post</h2>
+	<div class="error">{{ error }}</div>
+	<form method="post">
+		<label>
+			<div>Comment</div>
+			<textarea name="content">{{ content }}</textarea>
+		</label>
+		<input type="submit" value="Submit edit">
+		<a href="/blog">Cancel</a>
+	</form>
+</body>
+
+{% endblock %}
