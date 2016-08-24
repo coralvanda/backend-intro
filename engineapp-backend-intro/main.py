@@ -19,14 +19,14 @@ import webapp2
 import jinja2
 import codecs
 import re
-import hashlib
 import hmac
 import Cookie
 import datetime
-import random
-import string
 
 from google.appengine.ext import ndb
+
+from models import User
+from models import BlogEntry
 
 SECRET = 'secret_cookie_string'
 
@@ -78,27 +78,6 @@ def check_secure_val(h):
 	if h == make_secure_val(val):
 		return val
 
-def make_salt(length=5):
-	"""Creates/returns a string of random letters, 5 by default"""
-	return "".join(random.choice(string.letters) for x in range(length))
-
-def make_pw_hash(name, pw, salt=None):
-	"""Uses salt to make a more secure password hash"""
-	if not salt:
-		salt = make_salt()
-	h = hashlib.sha256(name + pw + salt).hexdigest()
-	return '%s,%s' % (salt, h)
-
-def valid_pw(name, password, h):
-	"""Verifies that a password is valid using the hash"""
-	salt = h.split(',')[0]
-	return h == make_pw_hash(name, password, salt)
-
-def users_key(group = 'default'):
-	"""Returns the user's database key"""
-	#return ndb.Key.from_path('users', group)
-	return ndb.Key('users', group)
-
 def check_login(cookie):
 	"""Checks for a logged-in user based on the stored cookie, 
 	and returns the username if logged in"""
@@ -106,43 +85,6 @@ def check_login(cookie):
 		return False
 	else:
 		return check_secure_val(cookie)
-
-
-class User(ndb.Model):
-	"""Creates an entity for storing users and provides
-	functionality for finding and handling users"""
-	name = ndb.StringProperty(required=True)
-	pw_hash = ndb.StringProperty(required=True)
-	email = ndb.StringProperty()
-
-	@classmethod
-	def by_id(cls, uid):
-		"""Takes in a user ID, returns that user if present"""
-		return User.get_by_id(uid, parent = user_key())
-
-	@classmethod
-	def by_name(cls, name):
-		"""Takes in a user name, returns that user if present"""
-		u = User.query(User.name == name).get()
-		return u
-
-	@classmethod
-	def register(cls, name, pw, email = None):
-		"""Takes in user registration info, returns a user
-		DB model object"""
-		pw_hash = make_pw_hash(name, pw)
-		return User(parent=users_key(),
-			name=name,
-			pw_hash=pw_hash,
-			email=email)
-
-	@classmethod
-	def login(cls, name, pw):
-		"""Takes in login info, and returns that user if 
-		the login info is valid"""
-		u = cls.by_name(name)
-		if u and valid_pw(name, pw, u.pw_hash):
-			return u
 
 
 class SignupHandler(Handler):
@@ -166,7 +108,7 @@ class SignupHandler(Handler):
 		email_error		= ''
 		valid_form = True
 
-		u = User.by_name(user_name)
+		u = User._by_name(user_name)
 		if u:
 			username_error = "That user already exists."
 			valid_form = False
@@ -184,7 +126,7 @@ class SignupHandler(Handler):
 			valid_form = False
 
 		if valid_form:
-			u = User.register(user_name, password, email)
+			u = User._register(user_name, password, email)
 			u.put()
 			cookie_val = make_secure_val(user_name)
 			self.response.set_cookie('name', cookie_val)
@@ -214,7 +156,7 @@ class LoginHandler(Handler):
 		password_error 	= ''
 		valid_form = True
 
-		u = User.login(user_name, password)
+		u = User._login(user_name, password)
 		if not u:
 			username_error = "Invalid login"
 			valid_form = False
@@ -258,15 +200,6 @@ class WelcomeHandler(Handler):
 			self.render('welcome.html', user=user)
 		else:
 			self.redirect('/signup')
-
-
-class BlogEntry(ndb.Model):
-	"""Creates an entity for storing blog entries"""
-	title 	= ndb.StringProperty(required=True)
-	content = ndb.TextProperty(required=True)
-	creator = ndb.StringProperty(required=True)
-	liked	= ndb.StringProperty(repeated=True)
-	created = ndb.DateTimeProperty(auto_now_add=True)
 
 
 class Blog(Handler):
@@ -339,7 +272,7 @@ class EditBlogPost(Handler):
 			self.error(403)
 			self.redirect("/login")
 		elif blog_post.creator != user:
-			self.render("/blog.html", error="Must be OP to edit this post")
+			self.render("/blog.html", error="May only edit your own posts")
 		else:
 			self.render("/editpost.html", 
 				title=title, content=content, post_id=post_id)
@@ -379,7 +312,7 @@ class DeletePost(Handler):
 		elif blog_post.creator != user:
 			self.error(403)
 			#self.redirect("/login")
-			self.render("/blog.html", error="Must be logged in as OP")
+			self.render("/blog.html", error="May only delete your own posts")
 		else:
 			blog_post.key.delete()
 			self.render("/deleted.html")
@@ -387,7 +320,7 @@ class DeletePost(Handler):
 
 class LikePost(Handler):
 	"""Accepts a post ID and allows a user to like a post.
-	
+
 	If the user is not logged in, if it's his own post,
 	or if he has already liked the post, he will be redirected."""
 	def get(self, post_id):
@@ -401,7 +334,7 @@ class LikePost(Handler):
 			self.redirect("/login")
 		elif blog_post.creator == user:
 			self.error(403)
-			self.render("/blog.html", error="Must be logged in, but not as OP")
+			self.render("/blog.html", error="Cannot like your own posts")
 		elif user in blog_post.liked:
 			self.render("/blog.html", error="May only like a post one time")
 		else:

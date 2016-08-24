@@ -33,7 +33,10 @@
 				Likes: {{ blog_post.liked|length }}
 			</div>
 		<hr class="content">
-		<div class="content">{{ blog_post.content }}</div>
+		<pre class="content">{{ blog_post.content }}</pre>
+		<div class="content">
+			<p>Author: {{ blog_post.creator }}</p>
+		</div>
 	</div>
 
 	<script src="../static/app.js"></script>

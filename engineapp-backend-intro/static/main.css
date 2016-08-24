@@ -5,6 +5,41 @@ body {
 	padding: 10px;
 }
 
+h1 {
+	background-color: #ddd;
+	color: #888;
+	margin: 10px 0 10px 0;
+	height: 50px;
+}
+
+label {
+	display: block;
+	font-size: 20px;
+}
+
+textarea {
+	width: 400px;
+	height: 200px;
+	font-size: 17px;
+	font-family: monospace;
+}
+
+input[type=submit] {
+	font-size: 15px;
+}
+
+hr {
+	margin: 20px auto;
+}
+
+pre {
+	white-space: pre-wrap;
+}
+
+p {
+	font-size: small;
+}
+
 .error {
 	color: red;
 }
@@ -31,33 +66,6 @@ body {
 .content {
 	clear: both;
 	margin: 0 0 15px 0;
-}
-
-h1 {
-	background-color: #ddd;
-	color: #888;
-	margin: 10px 0 10px 0;
-	height: 50px;
-}
-
-label {
-	display: block;
-	font-size: 20px;
-}
-
-textarea {
-	width: 400px;
-	height: 200px;
-	font-size: 17px;
-	font-family: monospace;
-}
-
-input[type=submit] {
-	font-size: 15px;
-}
-
-hr {
-	margin: 20px auto;
 }
 
 .container {
