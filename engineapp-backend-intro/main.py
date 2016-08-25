@@ -452,13 +452,3 @@ app = webapp2.WSGIApplication([
     ('/logout', LogoutHandler),
     ('/welcome', WelcomeHandler)
     ], debug=True)
-
-
-'''
-TODO:
-	- users can comment on posts
-		FIX: line 439 is not finding the entity I want using
-		that query, need to figure out how to find it
-
-	- remove post_id=post_id from editpost handler?
-'''
