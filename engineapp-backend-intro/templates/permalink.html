@@ -39,9 +39,8 @@
 		</div>
 	</div>
 
-	{% for comment in blog_post.comments %}
+	{% for comment in comments %}
 		<div class="comment">
-			<div class="title">{{ comment.title }}</div>
 			<div class="date">
 				{{ comment.created.strftime("%b %d, %Y") }}
 			</div>
@@ -51,7 +50,7 @@
 				</a>
 			</div>
 			<div class="modify">
-				<a href="/comment/edit/{{ comment.key.id() }}">	Edit
+				<a href="/comment/edit/{{ comment.key.id() }}">		Edit
 				</a>
 			</div>
 			<hr class="content">

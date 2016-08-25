@@ -213,18 +213,35 @@ class Blog(Handler):
 		self.render('blog.html', user=user, posts=posts)
 
 
+def remove_invalid_keys(post):
+	keys_list = post.comments
+	good_keys = []
+	for key in keys_list:
+		if key is not None:
+			good_keys.append(key)
+		else:
+			pass
+	post.comments = good_keys
+	post.put()
+	return
+
+
 class SinglePost(Handler):
 	"""Displays an individual blog post as identified in the URL.
 
-	Also allows for comments to be created for this blog entry, 
-	using the post method."""
+	Displays any comments made on this post, also allows for 
+	comments to be created for this blog entry, using the 
+	post method."""
 	def get(self, post_id):
 		blog_post = BlogEntry.get_by_id(int(post_id))
+		remove_invalid_keys(blog_post)
+		comments = [k.get() for k in blog_post.comments]
 		user_name_cookie = self.request.cookies.get('name')
 		user = check_login(user_name_cookie)
 		if blog_post:
 			self.render("permalink.html", 
-				blog_post=blog_post, post_id=post_id, user=user)
+				blog_post=blog_post, post_id=post_id, 
+				comments=comments, user=user)
 		else:
 			self.error(404)
 			return
@@ -234,18 +251,21 @@ class SinglePost(Handler):
 		cookie 	= self.request.cookies.get('name')
 		user 	= check_login(cookie)
 		blog_post = BlogEntry.get_by_id(int(post_id))
+		comments = [k.get() for k in blog_post.comments]
 		if not user:
 			self.redirect("/signup")
 		elif content:
-			blog_post.comments.append(Comment(content=content,
-										creator=user))
+			comment = Comment(content=content,
+							creator=user)
+			comment_key = comment.put()
+			blog_post.comments.append(comment_key)
 			blog_post.put()
 			self.redirect("/blog/%s" % post_id)
 		else:
 			error = "You must include content"
 			self.render("/permalink.html",
 				blog_post=blog_post, post_id=post_id,
-				content=content, 
+				comments=comments, content=content, 
 				error=error, user=user)
 
 
@@ -295,7 +315,8 @@ class EditBlogPost(Handler):
 			self.error(403)
 			self.redirect("/login")
 		elif blog_post.creator != user:
-			self.render("/blog.html", error="May only edit your own posts")
+			self.render("/blog.html", user=user,
+				error="May only edit your own posts")
 		else:
 			self.render("/editpost.html", 
 				title=title, content=content, post_id=post_id)
@@ -334,7 +355,8 @@ class DeletePost(Handler):
 			self.redirect("/login")
 		elif blog_post.creator != user:
 			self.error(403)
-			self.render("/blog.html", error="May only delete your own posts")
+			self.render("/blog.html", user=user,
+				error="May only delete your own posts")
 		else:
 			blog_post.key.delete()
 			self.render("/deleted.html")
@@ -356,9 +378,11 @@ class LikePost(Handler):
 			self.redirect("/login")
 		elif blog_post.creator == user:
 			self.error(403)
-			self.render("/blog.html", error="Cannot like your own posts")
+			self.render("/blog.html", user=user,
+				error="Cannot like your own posts")
 		elif user in blog_post.liked:
-			self.render("/blog.html", error="May only like a post one time")
+			self.render("/blog.html", user=user,
+				error="May only like a post one time")
 		else:
 			blog_post.liked.append(user)
 			blog_post.put()
@@ -381,7 +405,8 @@ class EditComment(Handler):
 			self.error(403)
 			self.redirect("/login")
 		elif comment.creator != user:
-			self.render("/blog.html", error="May only edit your own posts")
+			self.render("/blog.html", user=user,
+				error="May only edit your own posts")
 		else:
 			self.render("/editcomment.html", 
 				content=content)
@@ -401,7 +426,7 @@ class EditComment(Handler):
 		else:
 			error = "You must include content"
 			self.render("/editcomment.html", 
-				content=content, error=error)
+				content=content, user=user, error=error)
 
 
 class DeleteComment(Handler):
@@ -419,8 +444,15 @@ class DeleteComment(Handler):
 			self.redirect("/login")
 		elif comment.creator != user:
 			self.error(403)
-			self.render("/blog.html", error="May only delete your own posts")
+			self.render("/blog.html", user=user,
+				error="May only delete your own posts")
 		else:
+			# Could not get this to work, so it is disabled for now
+			#comment_key = ndb.Key(Comment, comment_id)
+			#blog_post = BlogEntry.query(BlogEntry.comments == comment_key).get()
+			#if blog_post:
+			#	blog_post.comments.remove(comment_key)
+			#	blog_post.put()
 			comment.key.delete()
 			self.render("/deleted.html")
 
@@ -445,10 +477,8 @@ app = webapp2.WSGIApplication([
 '''
 TODO:
 	- users can comment on posts
-		FIX: cannot reference comment.key.id() because they
-		have no keys.  need to restructure in such a way to 
-		retain functionality without using comment.key.id()
+		FIX: line 439 is not finding the entity I want using
+		that query, need to figure out how to find it
+
 	- remove post_id=post_id from editpost handler?
-
-
 '''

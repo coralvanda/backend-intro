@@ -78,4 +78,4 @@ class BlogEntry(ndb.Model):
 	creator 	= ndb.StringProperty(required=True)
 	liked		= ndb.StringProperty(repeated=True)
 	created 	= ndb.DateTimeProperty(auto_now_add=True)
-	comments	= ndb.StructuredProperty(Comment, repeated=True)
+	comments	= ndb.KeyProperty(repeated=True)
