@@ -64,13 +64,6 @@ class User(ndb.Model):
 			return u
 
 
-class Comment(ndb.Model):
-	"""Creates an entity for storing comments on blog entries"""
-	content		= ndb.TextProperty(required=True)
-	creator		= ndb.StringProperty(required=True)
-	created		= ndb.DateTimeProperty(auto_now_add=True)
-
-
 class BlogEntry(ndb.Model):
 	"""Creates an entity for storing blog entries"""
 	title 		= ndb.StringProperty(required=True)
@@ -78,4 +71,11 @@ class BlogEntry(ndb.Model):
 	creator 	= ndb.StringProperty(required=True)
 	liked		= ndb.StringProperty(repeated=True)
 	created 	= ndb.DateTimeProperty(auto_now_add=True)
-	comments	= ndb.KeyProperty(repeated=True)
+
+
+class Comment(ndb.Model):
+	"""Creates an entity for storing comments on blog entries"""
+	content		= ndb.TextProperty(required=True)
+	creator		= ndb.StringProperty(required=True)
+	created		= ndb.DateTimeProperty(auto_now_add=True)
+	parent_post = ndb.StringProperty(required=True)

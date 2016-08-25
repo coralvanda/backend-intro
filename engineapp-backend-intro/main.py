@@ -207,23 +207,9 @@ class Blog(Handler):
 	"""Serves the blog's front page, displays most recent entries first"""
 	def get(self):
 		posts = ndb.gql("SELECT * FROM BlogEntry ORDER BY created DESC limit 10")
-		#posts = BlogEntry.query().order(-BlogEntry.created)
 		cookie = self.request.cookies.get('name')
 		user = check_login(cookie)
 		self.render('blog.html', user=user, posts=posts)
-
-
-def remove_invalid_keys(post):
-	keys_list = post.comments
-	good_keys = []
-	for key in keys_list:
-		if key is not None:
-			good_keys.append(key)
-		else:
-			pass
-	post.comments = good_keys
-	post.put()
-	return
 
 
 class SinglePost(Handler):
@@ -234,8 +220,7 @@ class SinglePost(Handler):
 	post method."""
 	def get(self, post_id):
 		blog_post = BlogEntry.get_by_id(int(post_id))
-		remove_invalid_keys(blog_post)
-		comments = [k.get() for k in blog_post.comments]
+		comments = Comment.query(Comment.parent_post==post_id).fetch()
 		user_name_cookie = self.request.cookies.get('name')
 		user = check_login(user_name_cookie)
 		if blog_post:
@@ -251,16 +236,18 @@ class SinglePost(Handler):
 		cookie 	= self.request.cookies.get('name')
 		user 	= check_login(cookie)
 		blog_post = BlogEntry.get_by_id(int(post_id))
-		comments = [k.get() for k in blog_post.comments]
+		comments = Comment.query(Comment.parent_post==post_id).fetch()
 		if not user:
 			self.redirect("/signup")
 		elif content:
 			comment = Comment(content=content,
-							creator=user)
-			comment_key = comment.put()
-			blog_post.comments.append(comment_key)
-			blog_post.put()
-			self.redirect("/blog/%s" % post_id)
+							creator=user,
+							parent_post=post_id)
+			comment.put()
+			self.redirect("/blog")
+			# Could not figure out how to re-render the same page
+			# while updating with the new post for some reason
+			# so this is my work-around
 		else:
 			error = "You must include content"
 			self.render("/permalink.html",
@@ -319,7 +306,7 @@ class EditBlogPost(Handler):
 				error="May only edit your own posts")
 		else:
 			self.render("/editpost.html", 
-				title=title, content=content, post_id=post_id)
+				title=title, content=content)
 
 	def post(self, post_id):
 		title	= self.request.get("subject")
@@ -336,8 +323,7 @@ class EditBlogPost(Handler):
 		else:
 			error = "You must include both a title and content"
 			self.render("/editpost.html", 
-				title=title, content=content,
-				error=error, post_id=post_id)
+				title=title, content=content, error=error)
 
 
 class DeletePost(Handler):
@@ -447,12 +433,6 @@ class DeleteComment(Handler):
 			self.render("/blog.html", user=user,
 				error="May only delete your own posts")
 		else:
-			# Could not get this to work, so it is disabled for now
-			#comment_key = ndb.Key(Comment, comment_id)
-			#blog_post = BlogEntry.query(BlogEntry.comments == comment_key).get()
-			#if blog_post:
-			#	blog_post.comments.remove(comment_key)
-			#	blog_post.put()
 			comment.key.delete()
 			self.render("/deleted.html")
 
