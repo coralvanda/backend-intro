@@ -1,3 +1,12 @@
+/*
+html {
+	background: white;
+	background-repeat: no-repeat;
+	background: linear-gradient(white, #ffe6cc);
+	background-attachment: fixed;
+}
+*/
+
 body {
 	font-family: sans-serif;
 	width: 800px;
@@ -6,10 +15,11 @@ body {
 }
 
 h1 {
-	background-color: #ddd;
-	color: #888;
+	background-color: lightblue;
+	color: black;
 	margin: 10px 0 10px 0;
 	height: 50px;
+	text-align: center;
 }
 
 label {
@@ -46,10 +56,10 @@ p {
 
 .entry {
 	background: lightblue;
+	padding: 0 2px 0 2px;
 }
 
 .comment {
-	background: lightblue;
 	margin-left: 30px;
 }
 
@@ -97,4 +107,12 @@ p {
 
 .right {
 	margin-left: auto;
+}
+
+.shadow {
+	box-shadow: 4px 4px 5px black;
+}
+
+.main-content {
+
 }

@@ -5,19 +5,19 @@
 <body>
 	{% include 'login-header.html' %}
 	<form>
-		<h1>Login</h1>
+		<h1 class="shadow">Login</h1>
 		<table>
 			<tbody>
 				<tr>
 					<td>User name:</td>
-					<td><input type="text" name="username" 
+					<td><input type="text" name="username"
 						value="{{username}}"></td>
 					<td class="error">{{ username_error }}</td>
 				</tr>
 
 				<tr>
 					<td>Password:</td>
-					<td><input type="password" name="password" 
+					<td><input type="password" name="password"
 						value=""></td>
 					<td class="error">{{ password_error }}</td>
 				</tr>

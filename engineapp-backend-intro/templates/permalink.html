@@ -12,10 +12,10 @@
 	{% else %}
     	{% include 'login-header.html' %}
 	{% endif %}
-	
-	<h1>Entry</h1>
+
+	<h1 class="shadow">Entry</h1>
 	<div class="error">{{ error }}</div>
-	<div class="entry">
+	<div class="entry shadow">
 		<div class="title">{{ blog_post.title }}</div>
 		<div class="date">{{ blog_post.created.strftime("%b %d, %Y") }}</div>
 		<div class="modify">
@@ -40,7 +40,7 @@
 	</div>
 
 	{% for comment in comments %}
-		<div class="comment">
+		<div class="entry comment shadow">
 			<div class="date">
 				{{ comment.created.strftime("%b %d, %Y") }}
 			</div>
