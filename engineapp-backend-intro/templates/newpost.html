@@ -13,13 +13,13 @@
 	{% else %}
     	{% include "login-header.html" %}
 	{% endif %}
-	
-	<h2>Enter a new blog post</h2>
+
+	<h1 class="shadow color-fade">Enter a new blog post</h1>
 	<div class="error">{{ error }}</div>
 	<form method="post">
 		<label>
 			<div>Title</div>
-			<input class="large-text" type='text' name='subject' 
+			<input class="large-text" type='text' name='subject'
 			maxlength="25" value="{{ title }}">
 		</label>
 

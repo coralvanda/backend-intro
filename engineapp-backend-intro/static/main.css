@@ -1,11 +1,10 @@
-/*
+
 html {
 	background: white;
 	background-repeat: no-repeat;
-	background: linear-gradient(white, #ffe6cc);
+	background: linear-gradient(#87dd95, #237130);
 	background-attachment: fixed;
 }
-*/
 
 body {
 	font-family: sans-serif;
@@ -15,7 +14,6 @@ body {
 }
 
 h1 {
-	background-color: lightblue;
 	color: black;
 	margin: 10px 0 10px 0;
 	height: 50px;
@@ -55,8 +53,14 @@ p {
 }
 
 .entry {
-	background: lightblue;
 	padding: 0 2px 0 2px;
+}
+
+.color-fade {
+	background: #38bae4;
+	background-repeat: no-repeat;
+	background: linear-gradient(to bottom right, #53b0ce, #add8e6);
+	background-attachment: fixed;
 }
 
 .comment {
@@ -89,7 +93,7 @@ p {
 }
 
 .button {
-	background: gray;
+	background: linear-gradient(white, gray);
 	padding: 2px;
 	margin: 0 2px 0 2px;
 	border: 1px solid black;
@@ -97,6 +101,12 @@ p {
 
 .button:hover {
 	background: white;
+}
+
+.no-underline {
+	text-decoration: none;
+	color: black;
+	font-family: "Times New Roman", Arial;
 }
 
 .large-text {

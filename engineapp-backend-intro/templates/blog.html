@@ -10,12 +10,12 @@
 		    {% include "login-header.html" %}
 		{% endif %}
 
-		<h1 class="shadow">
+		<h1 class="shadow color-fade">
 			Blog entries
 		</h1>
 		<div class="error">{{ error }}</div>
 		{% for blog_post in posts %}
-			<div class="entry shadow">
+			<div class="entry shadow color-fade">
 				<div class="title">{{ blog_post.title }}</div>
 				<div class="date">
 					{{ blog_post.created.strftime("%b %d, %Y") }}
