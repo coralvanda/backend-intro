@@ -299,7 +299,7 @@ class EditBlogPost(Handler):
 		user_name_cookie = self.request.cookies.get('name')
 		user = check_login(user_name_cookie)
 		if not user:
-			self.error(403)
+			self.error(401)
 			self.redirect("/login")
 		elif blog_post.creator != user:
 			self.render("/blog.html", user=user,
@@ -388,7 +388,7 @@ class EditComment(Handler):
 		user_name_cookie = self.request.cookies.get('name')
 		user = check_login(user_name_cookie)
 		if not user:
-			self.error(403)
+			self.error(401)
 			self.redirect("/login")
 		elif comment.creator != user:
 			self.render("/blog.html", user=user,
